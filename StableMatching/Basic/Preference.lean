@@ -24,6 +24,18 @@ def Woman.Prefers
 notation:50 w₁ " ≺[" m "] " w₂ => Man.Prefers m w₁ w₂
 notation:50 m₁ " ≺[" w "] " m₂ => Woman.Prefers w m₁ m₂
 
+instance manPrefersDecidable
+    {sm : SMP n} (m : sm.Man) (w₁ w₂ : sm.Woman) :
+    Decidable (w₁ ≺[m] w₂) := by
+  unfold Man.Prefers
+  infer_instance
+
+instance womanPrefersDecidable
+    {sm : SMP n} (w : sm.Woman) (m₁ m₂ : sm.Man) :
+    Decidable (m₁ ≺[w] m₂) := by
+  unfold Woman.Prefers
+  infer_instance
+
 theorem Man.prefers_irrefl
     {sm : SMP n}
     (m : sm.Man) : ∀ w, ¬ (w ≺[m] w) := by
