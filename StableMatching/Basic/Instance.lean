@@ -73,6 +73,30 @@ def womanRank
     (m : sm.Man) : Fin n :=
   sm.womenRankImpl w.val m.val
 
+theorem manRank_injective
+    {sm : SMP n}
+    (m : sm.Man) : Function.Injective (manRank m) := by
+  intro w₁ w₂ h
+  cases w₁ with
+  | mk v₁ =>
+    cases w₂ with
+    | mk v₂ =>
+      simp only [manRank] at h
+      congr
+      exact (sm.menRankImpl m.val).injective h
+
+theorem womanRank_injective
+    {sm : SMP n}
+    (w : sm.Woman) : Function.Injective (womanRank w) := by
+  intro m₁ m₂ h
+  cases m₁ with
+  | mk v₁ =>
+    cases m₂ with
+    | mk v₂ =>
+      simp only [womanRank] at h
+      congr
+      exact (sm.womenRankImpl w.val).injective h
+
 end SMP
 
 end StableMatching
