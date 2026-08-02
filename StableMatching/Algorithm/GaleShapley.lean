@@ -43,26 +43,29 @@ def proposeStep
   -- 次に提案する女性を取得
   let w := sm.womanAtRank m rank
   let currentEngagement := s.engaged w
+  let next : Fin (n + 1) := ⟨(s.nextRank m).val + 1, by omega⟩
+  let nextRank := fun m' => if m' = m then next else s.nextRank m'
+  let changed_engaged := fun w' => if w' = w then some m else s.engaged w'
   match currentEngagement with
   | none =>
     -- 女性がまだ誰とも婚約していない場合、男性 m と女性 wを婚約させる
     {
-      engaged := fun w' => if w' = w then some m else s.engaged w'
-      nextRank := fun m' => if m' = m then s.nextRank m + 1 else s.nextRank m'
+      engaged := changed_engaged
+      nextRank
     }
-  | some m' =>
+  | some cur_m =>
     -- 女性がすでに婚約している場合、彼女の選好を比較する
-    if m ≺[w] m' then
-      -- 女性 w は男性 m を好む場合、彼女は m と婚約し、m' は解放される
+    if m ≺[w] cur_m then
+      -- 女性 w は男性 m を好む場合、彼女は m と婚約し、cur_m は解放される
       {
-        engaged := fun w' => if w' = w then some m else s.engaged w'
-        nextRank := fun m'' => if m'' = m then s.nextRank m + 1 else s.nextRank m''
+        engaged := changed_engaged
+        nextRank
       }
     else
       -- 女性 w は男性 m' を好む場合、状態は変わらない
       {
         engaged := s.engaged
-        nextRank := fun m'' => if m'' = m then s.nextRank m + 1 else s.nextRank m''
+        nextRank
       }
 
 end SMP

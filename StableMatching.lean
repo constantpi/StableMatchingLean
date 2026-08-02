@@ -2,4 +2,4 @@
 -- Import modules here that should be built as part of the library.
 -- import StableMatching.Basic
 
-import StableMatching.Basic.Stability
+import StableMatching.Algorithm.GaleShapley
