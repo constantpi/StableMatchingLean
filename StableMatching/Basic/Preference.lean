@@ -24,6 +24,70 @@ def Woman.Prefers
 notation:50 w₁ " ≺[" m "] " w₂ => Man.Prefers m w₁ w₂
 notation:50 m₁ " ≺[" w "] " m₂ => Woman.Prefers w m₁ m₂
 
+theorem Man.prefers_irrefl
+    {sm : SMP n}
+    (m : sm.Man) : ∀ w, ¬ (w ≺[m] w) := by
+  intro w
+  simp [Man.Prefers]
+
+theorem Man.prefers_trans
+    {sm : SMP n}
+    (m : sm.Man) : ∀ ⦃w₁ w₂ w₃⦄, (w₁ ≺[m] w₂) → (w₂ ≺[m] w₃) → (w₁ ≺[m] w₃) := by
+  intro w₁ w₂ w₃ h₁ h₂
+  exact lt_trans h₁ h₂
+
+theorem Man.prefers_asymm
+    {sm : SMP n}
+    (m : sm.Man) : ∀ ⦃w₁ w₂⦄, (w₁ ≺[m] w₂) → ¬ (w₂ ≺[m] w₁) := by
+  intro w₁ w₂ h₁ h₂
+  exact lt_asymm h₁ h₂
+
+theorem Man.prefers_total
+    {sm : SMP n}
+    (m : sm.Man) {w₁ w₂ : sm.Woman} (h : w₁ ≠ w₂) :
+    (w₁ ≺[m] w₂) ∨ (w₂ ≺[m] w₁) := by
+  -- rcases lt_or_gt_of_ne (fun h' => h (manRank_injective m h')) with h' | h'
+  -- · exact Or.inl h'
+  -- · exact Or.inr h'
+  have : manRank m w₁ ≠ manRank m w₂ := by
+    intro h'
+    exact h (manRank_injective m h')
+  have : manRank m w₁ < manRank m w₂ ∨ manRank m w₂ < manRank m w₁ := by
+    exact lt_or_gt_of_ne this
+  simp_all [Man.Prefers]
+
+theorem Woman.prefers_irrefl
+    {sm : SMP n}
+    (w : sm.Woman) : ∀ m, ¬ (m ≺[w] m) := by
+  intro m
+  simp [Woman.Prefers]
+
+theorem Woman.prefers_trans
+    {sm : SMP n}
+    (w : sm.Woman) : ∀ ⦃m₁ m₂ m₃⦄, (m₁ ≺[w] m₂) → (m₂ ≺[w] m₃) → (m₁ ≺[w] m₃) := by
+  intro m₁ m₂ m₃ h₁ h₂
+  exact lt_trans h₁ h₂
+
+theorem Woman.prefers_asymm
+    {sm : SMP n}
+    (w : sm.Woman) : ∀ ⦃m₁ m₂⦄, (m₁ ≺[w] m₂) → ¬ (m₂ ≺[w] m₁) := by
+  intro m₁ m₂ h₁ h₂
+  exact lt_asymm h₁ h₂
+
+theorem Woman.prefers_total
+    {sm : SMP n}
+    (w : sm.Woman) {m₁ m₂ : sm.Man} (h : m₁ ≠ m₂) :
+    (m₁ ≺[w] m₂) ∨ (m₂ ≺[w] m₁) := by
+  -- rcases lt_or_gt_of_ne (fun h' => h (womanRank_injective w h')) with h' | h'
+  -- · exact Or.inl h'
+  -- · exact Or.inr h'
+  have : womanRank w m₁ ≠ womanRank w m₂ := by
+    intro h'
+    exact h (womanRank_injective w h')
+  have : womanRank w m₁ < womanRank w m₂ ∨ womanRank w m₂ < womanRank w m₁ := by
+    exact lt_or_gt_of_ne this
+  simp_all [Woman.Prefers]
+
 
 end SMP
 end StableMatching
