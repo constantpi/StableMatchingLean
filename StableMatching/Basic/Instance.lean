@@ -123,6 +123,37 @@ theorem womanRank_manAtRank
     womanRank w (manAtRank w r) = r := by
   simp [womanRank, manAtRank]
 
+theorem card_man (sm : SMP n) : Fintype.card sm.Man = n := by
+  calc
+    _ = Fintype.card (Fin n) := by
+      apply Fintype.card_congr
+      exact {
+        toFun := fun m => m.val
+        invFun := fun i => ⟨i⟩
+        left_inv := by
+          intro m
+          rfl
+        right_inv := by
+          intro i
+          rfl
+      }
+    _ = n := Fintype.card_fin n
+theorem card_woman (sm : SMP n) : Fintype.card sm.Woman = n := by
+  calc
+    _ = Fintype.card (Fin n) := by
+      apply Fintype.card_congr
+      exact {
+        toFun := fun w => w.val
+        invFun := fun i => ⟨i⟩
+        left_inv := by
+          intro w
+          rfl
+        right_inv := by
+          intro i
+          rfl
+      }
+    _ = n := Fintype.card_fin n
+
 end SMP
 
 end StableMatching

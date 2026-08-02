@@ -9,14 +9,16 @@ structure GSState (sm : SMP n) where
   /-- 0 から n までの整数を表す Fin (n + 1) 型を使用して、男性が次に提案する女性の順位を追跡する。-/
   nextRank : sm.Man → Fin (n + 1) --
 
-def GSState.initial (sm : SMP n) : GSState sm :=
+namespace GSState
+
+def initial (sm : SMP n) : GSState sm :=
   {
     engaged := fun _ => none
     nextRank := fun _ => 0
   }
 
 /-- 有効なエンゲージメントを表す述語。-/
-def GSState.ValidEngagement
+def ValidEngagement
     {sm : SMP n}
     (s : GSState sm) : Prop :=
   ∀ w₁ w₂ m,
@@ -25,7 +27,7 @@ def GSState.ValidEngagement
     w₁ = w₂
 
 /-- 現在の状態において男性が仮の相手と結婚しているかどうかを判定する。-/
-def GSState.isEngaged
+def isEngaged
     {sm : SMP n}
     (s : GSState sm)
     (m : sm.Man) : Prop :=
@@ -167,5 +169,59 @@ theorem proposeStep_preserves_validEngagement
       simp [hpref] at *
       exact hvalid
 
+/-- 提案の回数を計算する。Σ_m  (s.nextRank m).val) -/
+def totalProposals
+    {sm : SMP n}
+    (s : GSState sm) : Nat :=
+  ∑ m : sm.Man, (s.nextRank m).val
+
+/-- 提案回数が単調に増加することを示す-/
+theorem proposeStep_proposalCount
+    {sm : SMP n}
+    (s : GSState sm)
+    (m : sm.Man)
+    (hm : ¬ s.isEngaged m)
+    (hnext : s.nextRank m < n) :
+    (totalProposals (proposeStep s m hm hnext)) = totalProposals s + 1 := by
+  unfold totalProposals
+  have next_rank := proposeStep_nextRank s m hm hnext
+
+  have hm_mem : m ∈ (Finset.univ : Finset sm.Man) := by simp only [Finset.mem_univ]
+  have hother :
+    ∀ x ≠ m,
+      ((s.proposeStep m hm hnext).nextRank x).val = (s.nextRank x).val := by
+    intro x hne
+    simp [next_rank, hne]
+  have erase_sum :  ∑ x ∈ Finset.univ.erase m, ↑((s.proposeStep m hm hnext).nextRank x).val = ∑ x ∈ Finset.univ.erase m, ↑(s.nextRank x).val := by
+    apply Finset.sum_congr rfl
+    intro x hx
+    have xne : x ≠ m := by
+      simp [Finset.mem_erase] at hx
+      exact hx
+    simp [next_rank, xne]
+  rw [← Finset.sum_erase_add _ _ hm_mem]
+  rw [erase_sum]
+  simp [next_rank]
+  rw [← Finset.sum_erase_add _ _ hm_mem]
+  ac_rfl
+
+theorem totalProposals_le
+    {sm : SMP n}
+    (s : GSState sm) :
+    totalProposals s ≤ n * n := by
+  unfold totalProposals
+  have : ∑ m : sm.Man, (s.nextRank m).val ≤ ∑ m : sm.Man, n := by
+    apply Finset.sum_le_sum
+    intro m _
+    omega
+  have sum_n : ∑ m : sm.Man, n = n * n := by
+    simp [Finset.sum_const, Finset.card_univ]
+    left
+    exact sm.card_man
+  rw [← sum_n]
+  exact this
+
+
+end GSState
 end SMP
 end StableMatching
