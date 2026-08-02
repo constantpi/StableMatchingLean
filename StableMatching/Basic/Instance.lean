@@ -97,6 +97,32 @@ theorem womanRank_injective
       congr
       exact (sm.womenRankImpl w.val).injective h
 
+def womanAtRank
+    {sm : SMP n}
+    (m : sm.Man)
+    (r : Fin n) : sm.Woman :=
+  ⟨(sm.menRankImpl m.val).symm r⟩
+
+def manAtRank
+    {sm : SMP n}
+    (w : sm.Woman)
+    (r : Fin n) : sm.Man :=
+  ⟨(sm.womenRankImpl w.val).symm r⟩
+
+/-- manRank m (womanAtRank m r) = r -/
+theorem manRank_womanAtRank
+    {sm : SMP n}
+    (m : sm.Man) (r : Fin n) :
+    manRank m (womanAtRank m r) = r := by
+  simp [manRank, womanAtRank]
+
+/-- womanRank w (manAtRank w r) = r -/
+theorem womanRank_manAtRank
+    {sm : SMP n}
+    (w : sm.Woman) (r : Fin n) :
+    womanRank w (manAtRank w r) = r := by
+  simp [womanRank, manAtRank]
+
 end SMP
 
 end StableMatching
