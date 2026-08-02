@@ -13,8 +13,7 @@ def IsBlockingPair
     (M : sm.Matching)
     (m : sm.Man)
     (w : sm.Woman) : Prop :=
-  m.Prefers w (M.partnerOfMan m) ∧
-  w.Prefers m (M.partnerOfWoman w)
+  (w ≺[m] M.partnerOfMan m) ∧ (m ≺[w] M.partnerOfWoman w)
 
 /--
 matching `M` が安定であること。

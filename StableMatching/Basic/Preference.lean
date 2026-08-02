@@ -21,5 +21,9 @@ def Woman.Prefers
     (m₁ m₂ : sm.Man) : Prop :=
   womanRank w m₁ < womanRank w m₂
 
+notation:50 w₁ " ≺[" m "] " w₂ => Man.Prefers m w₁ w₂
+notation:50 m₁ " ≺[" w "] " m₂ => Woman.Prefers w m₁ m₂
+
+
 end SMP
 end StableMatching

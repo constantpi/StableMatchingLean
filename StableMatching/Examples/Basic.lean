@@ -22,8 +22,8 @@ def w2 : sm3.Woman := ⟨2⟩
 #eval SMP.manRank m0 w0
 #eval SMP.manRank m0 w2
 
-example : m0.Prefers w0 w1 := by
-  dsimp [SMP.Man.Prefers, SMP.manRank]
+example : w0 ≺[m0] w1 := by
+  simp [SMP.Man.Prefers, SMP.manRank]
   decide
 
 end StableMatching.Examples
