@@ -64,6 +64,17 @@ instance
   | none => infer_instance
   | some cur_m' => infer_instance
 
+/-- 今回の提案相手の女性 -/
+def proposedWoman
+    {sm : SMP n}
+    (s : sm.GSState)
+    (m : sm.Man)
+    (hnext : s.nextRank m < n)
+    :sm.Woman :=
+  -- これはn未満なので、Fin n の値として安全に使用できる
+  let rank : Fin n := ⟨s.nextRank m, hnext⟩
+  sm.womanAtRank m rank
+
 /-- GSアルゴリズムの提案の1ステップ-/
 def proposeStep
     {sm : SMP n}
@@ -72,10 +83,8 @@ def proposeStep
     (_hm : ¬ s.isEngaged m) -- この引数は内部では使用されないが、提案する男性がまだ婚約していないことを保証するために必要
     (hnext : s.nextRank m < n) :
     GSState sm :=
-  -- これはn未満なので、Fin n の値として安全に使用できる
-  let rank : Fin n := ⟨s.nextRank m, hnext⟩
   -- 次に提案する女性を取得
-  let w := sm.womanAtRank m rank
+  let w := s.proposedWoman m hnext
   let currentEngagement := s.engaged w
   let next : Fin (n + 1) := ⟨(s.nextRank m).val + 1, by omega⟩
   let nextRank := fun m' => if m' = m then next else s.nextRank m'
@@ -133,7 +142,7 @@ theorem proposeStep_preserves_validEngagement
     (proposeStep s m hm hnext).ValidEngagement := by
   simp [proposeStep, GSState.ValidEngagement]
 
-  set w := sm.womanAtRank m ⟨s.nextRank m, hnext⟩ with hw
+  set w := s.proposedWoman m hnext with hw
   set changed_engaged := fun w' => if w' = w then some m else s.engaged w' with hchanged
   have changed_is_valid: ∀ w₁ w₂ m',
       changed_engaged w₁ = some m' →
