@@ -41,6 +41,11 @@ structure Man (sm : SMP n) where
   val : Fin n
 deriving DecidableEq, Fintype
 
+/- 男性を内部番号の順に列挙する iterator。-/
+def Man.iterator
+    {sm : SMP n} : List sm.Man :=
+  List.ofFn (fun i : Fin n => ⟨i⟩)
+
 /--
 stable marriage problem `sm` に属する女性。
 
