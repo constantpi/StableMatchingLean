@@ -33,6 +33,15 @@ def isEngaged
     (m : sm.Man) : Prop :=
   ∃ w, s.engaged w = some m
 
+/-- isEngagedは決定可能 -/
+instance
+    {sm : SMP n}
+    (s : GSState sm)
+    (m : sm.Man) :
+    Decidable (s.isEngaged m) := by
+  unfold isEngaged
+  infer_instance
+
 /-- GSアルゴリズムの提案の1ステップ-/
 def proposeStep
     {sm : SMP n}
@@ -221,6 +230,24 @@ theorem totalProposals_le
   rw [← sum_n]
   exact this
 
+/-- 提案する男性を見つける関数。いなければ none を返す。-/
+def findProposingMan
+    {sm : SMP n}
+    (s : GSState sm) :
+    -- Option {m : sm.Man // ¬ s.isEngaged m ∧ s.nextRank m < n} :=
+    Option sm.Man :=
+  Man.iterator.find? (fun m => (¬ s.isEngaged m ∧ s.nextRank m < n))
+
+/-- 提案する男性が見つかる場合、彼はまだ婚約しておらず、次の提案の順位は n 未満であることを保証する。-/
+theorem findProposingMan_spec
+    {sm : SMP n}
+    (s : GSState sm)
+    (m : sm.Man)
+    (h : s.findProposingMan = some m) :
+    ¬ s.isEngaged m ∧ s.nextRank m < n := by
+  unfold findProposingMan at h
+  have hp := List.find?_some h
+  exact of_decide_eq_true hp
 
 end GSState
 end SMP
