@@ -42,6 +42,28 @@ instance
   unfold isEngaged
   infer_instance
 
+/-- 女性が提案を受け取るかどうかを判定する。-/
+def receivesProposal
+    {sm : SMP n}
+    (w : sm.Woman)
+    (m : sm.Man)
+    (cur_m : Option sm.Man)
+    : Prop :=
+  match cur_m with
+  | none => true -- 女性がまだ誰とも婚約していない場合、提案を受け入れる
+  | some cur_m' => m ≺[w] cur_m' -- 女性がすでに婚約している場合、彼女の選好を比較する
+
+instance
+    {sm : SMP n}
+    (w : sm.Woman)
+    (m : sm.Man)
+    (cur_m : Option sm.Man) :
+    Decidable (receivesProposal w m cur_m) := by
+  unfold receivesProposal
+  match cur_m with
+  | none => infer_instance
+  | some cur_m' => infer_instance
+
 /-- GSアルゴリズムの提案の1ステップ-/
 def proposeStep
     {sm : SMP n}
@@ -58,27 +80,11 @@ def proposeStep
   let next : Fin (n + 1) := ⟨(s.nextRank m).val + 1, by omega⟩
   let nextRank := fun m' => if m' = m then next else s.nextRank m'
   let changed_engaged := fun w' => if w' = w then some m else s.engaged w'
-  match currentEngagement with
-  | none =>
-    -- 女性がまだ誰とも婚約していない場合、男性 m と女性 wを婚約させる
-    {
-      engaged := changed_engaged
-      nextRank
-    }
-  | some cur_m =>
-    -- 女性がすでに婚約している場合、彼女の選好を比較する
-    if m ≺[w] cur_m then
-      -- 女性 w は男性 m を好む場合、彼女は m と婚約し、cur_m は解放される
-      {
-        engaged := changed_engaged
-        nextRank
-      }
-    else
-      -- 女性 w は男性 m' を好む場合、状態は変わらない
-      {
-        engaged := s.engaged
-        nextRank
-      }
+  let new_engaged := if receivesProposal w m currentEngagement then changed_engaged else s.engaged
+  {
+    engaged := new_engaged
+    nextRank
+  }
 
 /-- 提案をした時にその男性のrankは1増加する-/
 theorem proposeStep_nextRank
@@ -89,14 +95,6 @@ theorem proposeStep_nextRank
     (hnext : s.nextRank m < n) :
     (proposeStep s m hm hnext).nextRank = fun m' => if m' = m then ⟨(s.nextRank m).val + 1, by omega⟩ else s.nextRank m' := by
   simp only [proposeStep]
-  let w := sm.womanAtRank m ⟨s.nextRank m, hnext⟩
-  match s.engaged w with
-  | none =>
-      simp
-  | some cur_m =>
-      by_cases hpref : m ≺[w] cur_m
-      · simp [w, hpref]
-      · simp [w, hpref]
 
 /-- 提案した男性の nextRank は 1 増える。 -/
 theorem proposeStep_nextRank_self
@@ -166,10 +164,10 @@ theorem proposeStep_preserves_validEngagement
         exact hvalid w₁ w₂ m' h₁ h₂
   match s.engaged w with
   | none =>
-    simp
+    simp [receivesProposal]
     exact changed_is_valid
   | some cur_m =>
-    simp
+    simp [receivesProposal]
     by_cases hpref : m ≺[w] cur_m
     ·
       simp [hpref] at *
