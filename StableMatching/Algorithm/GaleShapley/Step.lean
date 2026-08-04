@@ -10,7 +10,7 @@ def proposedWoman {sm : SMP n} (s : sm.GSState) (m : sm.Man)
   sm.womanAtRank m rank
 
 def proposeStep {sm : SMP n} (s : sm.GSState) (m : sm.Man)
-    (_hm : ¬ s.isEngaged m) (hnext : s.nextRank m < n) : GSState sm :=
+    (hnext : s.nextRank m < n) : GSState sm :=
   let w := s.proposedWoman m hnext
   let currentEngagement := s.engaged w
   let next : Fin (n + 1) := ⟨(s.nextRank m).val + 1, by omega⟩
@@ -20,15 +20,15 @@ def proposeStep {sm : SMP n} (s : sm.GSState) (m : sm.Man)
   { engaged := new_engaged, nextRank }
 
 theorem proposeStep_nextRank {sm : SMP n} (s : GSState sm) (m : sm.Man)
-    (hm : ¬ s.isEngaged m) (hnext : s.nextRank m < n) :
-    (proposeStep s m hm hnext).nextRank =
+    (hnext : s.nextRank m < n) :
+    (proposeStep s m hnext).nextRank =
       fun m' => if m' = m then ⟨(s.nextRank m).val + 1, by omega⟩ else s.nextRank m' := by
   simp only [proposeStep]
 
 theorem proposeStep_engaged_of_ne {sm : SMP n} (s : GSState sm) (m : sm.Man)
-    (hm : ¬ s.isEngaged m) (hnext : s.nextRank m < n) (w' : sm.Woman) :
+    (hnext : s.nextRank m < n) (w' : sm.Woman) :
     w' ≠ s.proposedWoman m hnext →
-    (proposeStep s m hm hnext).engaged w' = s.engaged w' := by
+    (proposeStep s m hnext).engaged w' = s.engaged w' := by
   unfold proposeStep
   simp
   intro hw

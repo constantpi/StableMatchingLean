@@ -22,7 +22,7 @@ theorem proposeStep_preserves_validEngagement
     (hm : ¬ s.isEngaged m)
     (hnext : s.nextRank m < n)
     (hvalid : s.ValidEngagement) :
-    (proposeStep s m hm hnext).ValidEngagement := by
+    (proposeStep s m hnext).ValidEngagement := by
   simp [proposeStep, GSState.ValidEngagement]
 
   set w := s.proposedWoman m hnext with hw
@@ -80,19 +80,18 @@ theorem proposeStep_proposalCount
     {sm : SMP n}
     (s : GSState sm)
     (m : sm.Man)
-    (hm : ¬ s.isEngaged m)
     (hnext : s.nextRank m < n) :
-    (totalProposals (proposeStep s m hm hnext)) = totalProposals s + 1 := by
+    (totalProposals (proposeStep s m hnext)) = totalProposals s + 1 := by
   unfold totalProposals
-  have next_rank := proposeStep_nextRank s m hm hnext
+  have next_rank := proposeStep_nextRank s m hnext
 
   have hm_mem : m ∈ (Finset.univ : Finset sm.Man) := by simp only [Finset.mem_univ]
   have hother :
     ∀ x ≠ m,
-      ((s.proposeStep m hm hnext).nextRank x).val = (s.nextRank x).val := by
+      ((s.proposeStep m hnext).nextRank x).val = (s.nextRank x).val := by
     intro x hne
     simp [next_rank, hne]
-  have erase_sum :  ∑ x ∈ Finset.univ.erase m, ↑((s.proposeStep m hm hnext).nextRank x).val = ∑ x ∈ Finset.univ.erase m, ↑(s.nextRank x).val := by
+  have erase_sum :  ∑ x ∈ Finset.univ.erase m, ↑((s.proposeStep m hnext).nextRank x).val = ∑ x ∈ Finset.univ.erase m, ↑(s.nextRank x).val := by
     apply Finset.sum_congr rfl
     intro x hx
     have xne : x ≠ m := by
@@ -127,11 +126,10 @@ theorem proposeStep_hasProposed_of_ne
     {sm : SMP n}
     (s : GSState sm)
     (m : sm.Man)
-    (hm : ¬ s.isEngaged m)
     (hnext : s.nextRank m < n)
     (w : sm.Woman)
     (hne : w ≠ s.proposedWoman m hnext)
-    : ∀ m': sm.Man, (proposeStep s m hm hnext).hasProposed m' w ↔ s.hasProposed m' w := by
+    : ∀ m': sm.Man, (proposeStep s m hnext).hasProposed m' w ↔ s.hasProposed m' w := by
   intro m'
   unfold proposeStep hasProposed
   if hm : m' = m then
@@ -177,10 +175,9 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
     {sm : SMP n}
     (s : GSState sm)
     (m : sm.Man)
-    (hm : ¬ s.isEngaged m)
     (hnext : s.nextRank m < n)
     (hvalid : s.allWomenEngagedToBestProposal) :
-    (proposeStep s m hm hnext).allWomenEngagedToBestProposal := by
+    (proposeStep s m hnext).allWomenEngagedToBestProposal := by
   unfold allWomenEngagedToBestProposal at *
   intro m_1 w new_proposed
   have hvalid_mw := hvalid m_1 w
@@ -257,10 +254,10 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
   else
     -- wが提案相手でない場合、wに提案したことがある男性集合は変わらない。
     -- そして現在の相手も変わらない。
-    have invariant_engage:= proposeStep_engaged_of_ne s m hm hnext w h_w_is_proposed
+    have invariant_engage:= proposeStep_engaged_of_ne s m hnext w h_w_is_proposed
     -- rw [← hnew_s] at invariant_engage
     simp [invariant_engage]
-    have hprev_mw := proposeStep_hasProposed_of_ne s m hm hnext w h_w_is_proposed m_1
+    have hprev_mw := proposeStep_hasProposed_of_ne s m hnext w h_w_is_proposed m_1
     -- rw [← hnew_s] at hprev_mw
     simp [hprev_mw] at new_proposed
     exact hvalid_mw new_proposed
