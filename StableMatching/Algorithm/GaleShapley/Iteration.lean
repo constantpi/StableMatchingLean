@@ -23,6 +23,36 @@ theorem findProposingMan_spec
   have hp := List.find?_some h
   exact of_decide_eq_true hp
 
+structure ValidGSState (sm : SMP n) where
+  state : GSState sm
+  /-- 同じ男性が二人以上と婚約していない -/
+  validEngagement : state.ValidEngagement
+  /-- 女性は過去に提案してきた男性の中で最良の相手と婚約している-/
+  bestProposal : state.allWomenEngagedToBestProposal
+
+/-- GSアルゴリズムの1ステップ -/
+def Step {sm : SMP n} (vs : ValidGSState sm) : ValidGSState sm :=
+  let s := vs.state
+  match hfind: s.findProposingMan with
+  | none =>
+    -- もう提案する男性がいない場合、状態は変化しない
+    vs
+  | some m =>
+    -- m が提案をする
+    let spec := s.findProposingMan_spec m hfind
+    have hm := spec.left -- mは誰とも婚約していない
+    have hnext := spec.right -- mはすべての人に申し出をしたわけではない
+    have newValidEngagement := proposeStep_preserves_validEngagement (sm:=sm) s m hm hnext vs.validEngagement
+    have newbestProposal := proposeStep_preserves_allWomenEngagedToBestProposal (sm:=sm) s m hnext vs.bestProposal
+
+    let newState := s.proposeStep m hnext
+    {
+      state := newState
+      validEngagement := newValidEngagement
+      bestProposal := newbestProposal
+    }
+
+
 end GSState
 end SMP
 end StableMatching
