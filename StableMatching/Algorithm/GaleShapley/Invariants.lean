@@ -68,6 +68,10 @@ theorem proposeStep_preserves_validEngagement
       simp [hpref] at *
       exact hvalid
 
+/-- 初期状態において有効なエンゲージメントが成立することを示す -/
+theorem initial_validEngagement
+    {sm : SMP n} :
+    (GSState.initial sm).ValidEngagement := by simp [initial, ValidEngagement]
 
 /-- 提案の回数を計算する。Σ_m  (s.nextRank m).val) -/
 def totalProposals
@@ -261,6 +265,11 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
     -- rw [← hnew_s] at hprev_mw
     simp [hprev_mw] at new_proposed
     exact hvalid_mw new_proposed
+
+/-- 初期状態において、すべての女性は過去に提案してきた男性の中で最良の人と仮の婚約をしていることを示す -/
+theorem initial_allWomenEngagedToBestProposal
+    {sm : SMP n} :
+    (GSState.initial sm).allWomenEngagedToBestProposal := by simp [initial, allWomenEngagedToBestProposal, hasProposed]
 
 end GSState
 end SMP
