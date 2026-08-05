@@ -52,15 +52,18 @@ def Step {sm : SMP n} (vs : ValidGSState sm) : ValidGSState sm :=
       bestProposal := newbestProposal
     }
 
-def GSloop {sm : SMP n} (vs : ValidGSState sm) (k : ℕ) : ValidGSState sm :=
-  if k = 0 then
-    vs
-  else
-    let newVS := Step vs
-    GSloop newVS (k - 1)
+def GSiteration {sm : SMP n} (vs : ValidGSState sm) (k : ℕ) : ValidGSState sm :=
+  -- if k = 0 then
+  --   vs
+  -- else
+  --   let newVS := Step vs
+  --   GSiteration newVS (k - 1)
+  match k with
+  | 0 => vs
+  | k + 1 => Step (GSiteration vs k)
 
 /-- GSアルゴリズム本体-/
-def GSAlgorithm {sm : SMP n} : ValidGSState sm :=
+def GSloop {sm : SMP n} (k : ℕ) : ValidGSState sm :=
   let initial_state := GSState.initial sm
   let initial_validEngagement := initial_validEngagement
   let initial_bestProposal := initial_allWomenEngagedToBestProposal
@@ -69,7 +72,7 @@ def GSAlgorithm {sm : SMP n} : ValidGSState sm :=
     validEngagement := initial_validEngagement,
     bestProposal := initial_bestProposal
   }
-  GSloop initialvalidState (n * n + 1) -- ループの回数は n^2 回で十分
+  GSiteration initialvalidState k
 
 end GSState
 end SMP

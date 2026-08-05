@@ -2,3 +2,4 @@ import StableMatching.Algorithm.GaleShapley.State
 import StableMatching.Algorithm.GaleShapley.Step
 import StableMatching.Algorithm.GaleShapley.Invariants
 import StableMatching.Algorithm.GaleShapley.Iteration
+import StableMatching.Algorithm.GaleShapley.Termination

@@ -79,51 +79,6 @@ def totalProposals
     (s : GSState sm) : Nat :=
   ∑ m : sm.Man, (s.nextRank m).val
 
-/-- 提案回数が単調に増加することを示す-/
-theorem proposeStep_proposalCount
-    {sm : SMP n}
-    (s : GSState sm)
-    (m : sm.Man)
-    (hnext : s.nextRank m < n) :
-    (totalProposals (proposeStep s m hnext)) = totalProposals s + 1 := by
-  unfold totalProposals
-  have next_rank := proposeStep_nextRank s m hnext
-
-  have hm_mem : m ∈ (Finset.univ : Finset sm.Man) := by simp only [Finset.mem_univ]
-  have hother :
-    ∀ x ≠ m,
-      ((s.proposeStep m hnext).nextRank x).val = (s.nextRank x).val := by
-    intro x hne
-    simp [next_rank, hne]
-  have erase_sum :  ∑ x ∈ Finset.univ.erase m, ↑((s.proposeStep m hnext).nextRank x).val = ∑ x ∈ Finset.univ.erase m, ↑(s.nextRank x).val := by
-    apply Finset.sum_congr rfl
-    intro x hx
-    have xne : x ≠ m := by
-      simp [Finset.mem_erase] at hx
-      exact hx
-    simp [next_rank, xne]
-  rw [← Finset.sum_erase_add _ _ hm_mem]
-  rw [erase_sum]
-  simp [next_rank]
-  rw [← Finset.sum_erase_add _ _ hm_mem]
-  ac_rfl
-
-theorem totalProposals_le
-    {sm : SMP n}
-    (s : GSState sm) :
-    totalProposals s ≤ n * n := by
-  unfold totalProposals
-  have : ∑ m : sm.Man, (s.nextRank m).val ≤ ∑ m : sm.Man, n := by
-    apply Finset.sum_le_sum
-    intro m _
-    omega
-  have sum_n : ∑ m : sm.Man, n = n * n := by
-    simp [Finset.sum_const, Finset.card_univ]
-    left
-    exact sm.card_man
-  rw [← sum_n]
-  exact this
-
 
 /-- (m, w)が今回の提案ペアでないなら、wに提案したことがある男性集合は変わらない -/
 theorem proposeStep_hasProposed_of_ne
