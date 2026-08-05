@@ -56,6 +56,31 @@ theorem totalProposals_le
 
 /-- GSアルゴリズムの出力において、提案男性がいない状態に到達する-/
 theorem GSloop_terminates {sm : SMP n} : ∃k, (k ≤ n * n + 1 ∧ noProposingMan (GSloop (sm:=sm) k)) := by
+  have exists_proposingMan_iff (s : ValidGSState sm) :
+      ¬ noProposingMan s ↔ ∃ m, s.state.findProposingMan = some m := by
+    unfold noProposingMan
+    constructor
+    · intro h
+      match hfind : s.state.findProposingMan with
+      | none => contradiction
+      | some m => exact ⟨m, by rfl⟩
+    · rintro ⟨m, hm⟩ hnone
+      simp [hm] at hnone
+
+  have step_totalProposals (s : ValidGSState sm) (m : sm.Man)
+      (hm : s.state.findProposingMan = some m) :
+      totalProposals (Step s).state = totalProposals s.state + 1 := by
+    unfold Step
+    dsimp
+    split
+    · rename_i is_none
+      rw [hm] at is_none
+      contradiction
+    . rename_i m' hfind
+      simp
+      apply proposeStep_proposalCount
+
+
   -- 背理法を使う
   by_contra h
   push_neg at h -- すべての k ≤ n * n + 1 に対して、提案男性が存在する
@@ -67,29 +92,12 @@ theorem GSloop_terminates {sm : SMP n} : ∃k, (k ≤ n * n + 1 ∧ noProposingM
     | succ k ih =>
       intro hk
       have hk_le : k ≤ n * n + 1 := by omega
-      have k_proposing_man := h k hk_le
       have : GSloop (sm:=sm) (k + 1) = Step (GSloop (sm:=sm) k) := by rfl
       rw [this]
       set k_state := GSloop (sm:=sm) k with hk_state
       have k_state_total := ih hk_le
-      have k_state_proposing_man : ∃ m, k_state.state.findProposingMan = some m := by
-        unfold noProposingMan at k_proposing_man
-        generalize hfind : k_state.state.findProposingMan = f
-        cases f with
-        | none => contradiction
-        | some m => exact ⟨m, by rfl⟩
-      have hstep : totalProposals (Step k_state).state = totalProposals k_state.state + 1 := by
-        unfold Step
-        dsimp only
-        split
-        · contradiction
-        · rename_i m' hfind
-          simp only
-          apply proposeStep_proposalCount
-      rw [hstep, k_state_total]
-
-
-
+      obtain ⟨m, hm⟩ := (exists_proposingMan_iff k_state).mp (h k hk_le)
+      rw [step_totalProposals k_state m hm, k_state_total]
 
   have htotal := total_proposals_increasing (n * n + 1) (le_refl _)
   have hbound := totalProposals_le (GSloop (sm := sm) (n * n + 1)).state
