@@ -60,6 +60,25 @@ def matching_of_noProposingMan
   }
   { equiv }
 
+theorem engaged_of_matched
+    (s : ValidGSState sm)
+    (hno : noProposingMan s)
+    (m : sm.Man)
+    (w : sm.Woman)
+    (hmatch :
+      (matching_of_noProposingMan s hno).partnerOfMan m = w) :
+    s.state.engaged w = some m := by
+  set matching := matching_of_noProposingMan s hno with hmatching
+  set w_to_m := engaged_function_of_noProposingMan s hno with hw_to_m
+  have : s.state.engaged w = some (w_to_m w) := by
+    simp [hw_to_m]
+    unfold engaged_function_of_noProposingMan
+    simp
+  have hinv : w_to_m (matching.partnerOfMan m) = m := matching.equiv.symm_apply_apply m
+  rw [hmatch] at hinv
+  rw [hinv] at this
+  exact this
+
 
 
 end GSState
