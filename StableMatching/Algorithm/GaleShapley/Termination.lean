@@ -54,7 +54,7 @@ theorem totalProposals_le
   exact this
 
 
-/-- GSアルゴリズムの出力において、提案男性がいない状態に到達する-/
+/-- GSアルゴリズムの出力において、一定の回数で提案男性がいない状態に到達する -/
 theorem GSloop_terminates {sm : SMP n} : ∃k, (k ≤ n * n + 1 ∧ noProposingMan (GSloop (sm:=sm) k)) := by
   have exists_proposingMan_iff (s : ValidGSState sm) :
       ¬ noProposingMan s ↔ ∃ m, s.state.findProposingMan = some m := by
@@ -103,7 +103,30 @@ theorem GSloop_terminates {sm : SMP n} : ∃k, (k ≤ n * n + 1 ∧ noProposingM
   have hbound := totalProposals_le (GSloop (sm := sm) (n * n + 1)).state
   omega
 
-
+/-- n^2 + 1回の反復後に提案男性がいない状態に到達する -/
+theorem GSloop_terminates_at_n2_plus_1 {sm : SMP n} : noProposingMan (GSloop (sm:=sm) (n * n + 1)) := by
+  obtain ⟨k, hk⟩ := GSloop_terminates (sm:=sm)
+  -- k回以上繰り返して呼ぶと、提案男性がいない状態に到達する
+  have : ∀t, noProposingMan (GSloop (sm:=sm) (k + t)) := by
+    intro t
+    induction t with
+    | zero => exact hk.right
+    | succ t ih =>
+      have : GSloop (sm:=sm) (k + (t + 1)) = Step (GSloop (sm:=sm) (k + t)) := by rfl
+      rw [this]
+      unfold Step
+      simp [noProposingMan] at *
+      split
+      . exact ih
+      . rename_i m hfind
+        rw [hfind] at ih
+        contradiction
+  have hkn : k ≤ n * n + 1 := hk.left
+  let t := n * n + 1 - k
+  have hkn_plus : k + t = n * n + 1 := by omega
+  have : noProposingMan (GSloop (sm:=sm) (k + t)) := this t
+  rw [hkn_plus] at this
+  exact this
 
 end GSState
 end SMP
