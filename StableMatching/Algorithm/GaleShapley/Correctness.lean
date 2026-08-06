@@ -108,6 +108,47 @@ theorem allMenEngaged_of_noProposingMan
   have hmw := hm w
   contradiction
 
+/-- 提案男性がいないなら女性は全員既婚-/
+theorem allWomenEngaged_of_noProposingMan
+    {sm : SMP n}
+    (s : ValidGSState sm)
+    (hno : noProposingMan s) :
+    ∀ w : sm.Woman, ∃ m : sm.Man, s.state.engaged w = some m := by
+  -- まず男性は全員既婚であることを示す
+  have allMenEngaged := allMenEngaged_of_noProposingMan s hno
+  unfold isEngaged at allMenEngaged
+  let m_to_w : sm.Man → sm.Woman := fun m => Classical.choose (allMenEngaged m)
+  have m_to_w_injective : Function.Injective m_to_w := by
+    intro m₁ m₂ h
+    unfold m_to_w at h
+    have hspec1 := Classical.choose_spec (allMenEngaged m₁)
+    have hspec2 := Classical.choose_spec (allMenEngaged m₂)
+    rw [←h] at hspec2
+    simp [hspec1] at hspec2
+    exact hspec2
+
+  have same_card : Finset.card (Finset.univ : Finset sm.Man) = Finset.card (Finset.univ : Finset sm.Woman) := by
+    simp [Finset.card_univ]
+    rw [sm.card_man, sm.card_woman]
+
+  have m_to_w_bijective : Function.Bijective m_to_w := by
+    apply (Fintype.bijective_iff_injective_and_card m_to_w).mpr
+    constructor
+    · exact m_to_w_injective
+    · exact same_card
+
+  have m_to_w_surjective := m_to_w_bijective.right
+
+  intro w
+  have hsurj := m_to_w_surjective w
+  have ⟨m, hm⟩ := hsurj
+  exists m
+  unfold m_to_w at hm
+  have hspec := Classical.choose_spec (allMenEngaged m)
+  rw [hm] at hspec
+  exact hspec
+
+
 end GSState
 end SMP
 end StableMatching
