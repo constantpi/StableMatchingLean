@@ -5,3 +5,4 @@ import StableMatching.Algorithm.GaleShapley.Iteration
 import StableMatching.Algorithm.GaleShapley.Termination
 import StableMatching.Algorithm.GaleShapley.Correctness
 import StableMatching.Algorithm.GaleShapley.MatchingOutput
+import StableMatching.Algorithm.GaleShapley.StableOutput
