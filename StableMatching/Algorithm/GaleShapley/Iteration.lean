@@ -46,7 +46,7 @@ def Step {sm : SMP n} (vs : ValidGSState sm) : ValidGSState sm :=
     have hnext := spec.right -- mはすべての人に申し出をしたわけではない
     have newValidEngagement := proposeStep_preserves_validEngagement (sm:=sm) s m hm hnext vs.validEngagement
     have newbestProposal := proposeStep_preserves_allWomenEngagedToBestProposal (sm:=sm) s m hnext vs.bestProposal
-    have newNextRank_gt_engagedRank := proposeStep_preserves_nextRank_gt_engagedRank (sm:=sm) s m hnext vs.nextRank_gt_engagedRank
+    have newNextRank_gt_engagedRank := proposeStep_preserves_nextRank_gt_engagedRank (sm:=sm) s m hm hnext vs.nextRank_gt_engagedRank
     let newState := s.proposeStep m hnext
     {
       state := newState

@@ -218,25 +218,19 @@ def nextRank_gt_engagedRank
     {sm : SMP n}
     (s : GSState sm)
     : Prop :=
-  ∀ m: sm.Man, ∀ w: sm.Woman, s.engaged w = some m → (s.nextRank m).val > (sm.manRank m w).val
+  ∀ m: sm.Man, ∀ w: sm.Woman, s.engaged w = some m → (s.nextRank m).val = (sm.manRank m w).val + 1
 
 /-- nextRank_gt_engagedRankがアルゴリズム中で保持される -/
 theorem proposeStep_preserves_nextRank_gt_engagedRank
     {sm : SMP n}
     (s : GSState sm)
     (m : sm.Man)
+    (hm: ¬ s.isEngaged m)
     (hnext : s.nextRank m < n)
     (hvalid : s.nextRank_gt_engagedRank) :
     (proposeStep s m hnext).nextRank_gt_engagedRank := by
   unfold nextRank_gt_engagedRank at *
   intro m_1 w_1 h_engaged
-  -- m_1のnextRankは下がることはない。
-  have h_nextRank_non_decreasing : ((proposeStep s m hnext).nextRank m_1).val ≥ s.nextRank m_1 := by
-    rw [proposeStep_nextRank]
-    if h_m_eq : m_1 = m then
-      simp [h_m_eq]
-    else
-      simp [h_m_eq]
 
   -- proposedWomanがw_1と同じかどうかで場合分けをする
   if h_w_eq : w_1 = s.proposedWoman m hnext then
@@ -253,19 +247,33 @@ theorem proposeStep_preserves_nextRank_gt_engagedRank
         rw [h_w_eq]
         simp [manRank_womanAtRank]
       rw [this]
-      omega
     else
       -- 提案が拒否された場合
       simp [h_accept] at h_engaged
       -- もともとm_1はw_1と仮の婚約をしていたことになる
       have := hvalid m_1 w_1 h_engaged
-      omega
+      if h_m_eq : m_1 = m then
+        simp [h_m_eq] at h_engaged
+        simp [isEngaged] at hm
+        exfalso
+        exact hm w_1 h_engaged
+      else
+        simp [h_m_eq]
+        exact this
   else
     -- proposedWomanがw_1と異なる場合、engagedは変わらないので、sの時点での不等式を使う
     have h_engaged_prev := proposeStep_engaged_of_ne s m hnext w_1 h_w_eq
     rw [h_engaged_prev] at h_engaged
     have := hvalid m_1 w_1 h_engaged
-    omega
+    simp [proposeStep_nextRank]
+    if h_m_eq : m_1 = m then
+      simp [h_m_eq] at h_engaged
+      simp [isEngaged] at hm
+      exfalso
+      exact hm w_1 h_engaged
+    else
+      simp [h_m_eq]
+      exact this
 
 /-- 初期状態において、nextRank_gt_engagedRankが成り立つ -/
 theorem initial_nextRank_gt_engagedRank
