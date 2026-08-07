@@ -28,8 +28,10 @@ end Matching
 /--
 問題 `sm` の stable matching。
 -/
-def StableMatching (sm : SMP n) :=
-  {M : sm.Matching // M.IsStable}
+structure StableMatching (sm : SMP n) where
+  matching : sm.Matching
+  isStable : matching.IsStable
+
 
 end SMP
 end StableMatching
