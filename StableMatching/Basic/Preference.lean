@@ -13,6 +13,15 @@ def Man.Prefers
   manRank m w₁ < manRank m w₂
 
 /--
+男性 `m` が `w₂` より `w₁` を少なくとも同程度に好む。
+-/
+def Man.PrefersOrEqual
+    {sm : SMP n}
+    (m : sm.Man)
+    (w₁ w₂ : sm.Woman) : Prop :=
+  manRank m w₁ ≤ manRank m w₂
+
+/--
 女性 `w` が `m₂` より `m₁` を好む。
 -/
 def Woman.Prefers
@@ -21,8 +30,19 @@ def Woman.Prefers
     (m₁ m₂ : sm.Man) : Prop :=
   womanRank w m₁ < womanRank w m₂
 
+/--
+女性 `w` が `m₂` より `m₁` を少なくとも同程度に好む。
+-/
+def Woman.PrefersOrEqual
+    {sm : SMP n}
+    (w : sm.Woman)
+    (m₁ m₂ : sm.Man) : Prop :=
+  womanRank w m₁ ≤ womanRank w m₂
+
 notation:50 w₁ " ≺[" m "] " w₂ => Man.Prefers m w₁ w₂
 notation:50 m₁ " ≺[" w "] " m₂ => Woman.Prefers w m₁ m₂
+notation:50 w₁ " ≼[" m "] " w₂ => Man.PrefersOrEqual m w₁ w₂
+notation:50 m₁ " ≼[" w "] " m₂ => Woman.PrefersOrEqual w m₁ m₂
 
 instance manPrefersDecidable
     {sm : SMP n} (m : sm.Man) (w₁ w₂ : sm.Woman) :
@@ -35,6 +55,42 @@ instance womanPrefersDecidable
     Decidable (m₁ ≺[w] m₂) := by
   unfold Woman.Prefers
   infer_instance
+
+instance manPrefersOrEqualDecidable
+    {sm : SMP n} (m : sm.Man) (w₁ w₂ : sm.Woman) :
+    Decidable (w₁ ≼[m] w₂) := by
+  unfold Man.PrefersOrEqual
+  infer_instance
+
+instance womanPrefersOrEqualDecidable
+    {sm : SMP n} (w : sm.Woman) (m₁ m₂ : sm.Man) :
+    Decidable (m₁ ≼[w] m₂) := by
+  unfold Woman.PrefersOrEqual
+  infer_instance
+
+theorem Man.prefersOrEqual_refl
+    {sm : SMP n}
+    (m : sm.Man) : ∀ w, w ≼[m] w := by
+  intro w
+  exact le_refl _
+
+theorem Man.prefersOrEqual_trans
+    {sm : SMP n}
+    (m : sm.Man) : ∀ ⦃w₁ w₂ w₃⦄, (w₁ ≼[m] w₂) → (w₂ ≼[m] w₃) → (w₁ ≼[m] w₃) := by
+  intro w₁ w₂ w₃ h₁ h₂
+  exact le_trans h₁ h₂
+
+theorem Woman.prefersOrEqual_refl
+    {sm : SMP n}
+    (w : sm.Woman) : ∀ m, m ≼[w] m := by
+  intro m
+  exact le_refl _
+
+theorem Woman.prefersOrEqual_trans
+    {sm : SMP n}
+    (w : sm.Woman) : ∀ ⦃m₁ m₂ m₃⦄, (m₁ ≼[w] m₂) → (m₂ ≼[w] m₃) → (m₁ ≼[w] m₃) := by
+  intro m₁ m₂ m₃ h₁ h₂
+  exact le_trans h₁ h₂
 
 theorem Man.prefers_irrefl
     {sm : SMP n}
