@@ -94,6 +94,34 @@ theorem Woman.prefersOrEqual_trans
   intro m₁ m₂ m₃ h₁ h₂
   exact le_trans h₁ h₂
 
+theorem Man.prefers_iff_not_prefersOrEqual
+    {sm : SMP n}
+    (m : sm.Man) (w₁ w₂ : sm.Woman) :
+    (w₁ ≺[m] w₂) ↔ ¬ (w₂ ≼[m] w₁) := by
+  unfold Man.Prefers Man.PrefersOrEqual
+  exact lt_iff_not_ge
+
+theorem Man.prefersOrEqual_iff_not_prefers
+    {sm : SMP n}
+    (m : sm.Man) (w₁ w₂ : sm.Woman) :
+    (w₁ ≼[m] w₂) ↔ ¬ (w₂ ≺[m] w₁) := by
+  unfold Man.Prefers Man.PrefersOrEqual
+  exact not_lt.symm
+
+theorem Woman.prefers_iff_not_prefersOrEqual
+    {sm : SMP n}
+    (w : sm.Woman) (m₁ m₂ : sm.Man) :
+    (m₁ ≺[w] m₂) ↔ ¬ (m₂ ≼[w] m₁) := by
+  unfold Woman.Prefers Woman.PrefersOrEqual
+  exact lt_iff_not_ge
+
+theorem Woman.prefersOrEqual_iff_not_prefers
+    {sm : SMP n}
+    (w : sm.Woman) (m₁ m₂ : sm.Man) :
+    (m₁ ≼[w] m₂) ↔ ¬ (m₂ ≺[w] m₁) := by
+  unfold Woman.Prefers Woman.PrefersOrEqual
+  exact not_lt.symm
+
 @[simp]
 theorem Man.prefers_irrefl
     {sm : SMP n}
