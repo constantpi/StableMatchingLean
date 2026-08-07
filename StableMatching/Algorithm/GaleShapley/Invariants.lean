@@ -280,6 +280,13 @@ theorem proposeStep_preserves_nextRank_gt_engagedRank
     have := hvalid m_1 w_1 h_engaged
     omega
 
+/-- 初期状態において、nextRank_gt_engagedRankが成り立つ -/
+theorem initial_nextRank_gt_engagedRank
+    {sm : SMP n} :
+    (GSState.initial sm).nextRank_gt_engagedRank := by
+  simp [initial, nextRank_gt_engagedRank]
+
+
 end GSState
 end SMP
 end StableMatching

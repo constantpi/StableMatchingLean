@@ -29,6 +29,8 @@ structure ValidGSState (sm : SMP n) where
   validEngagement : state.ValidEngagement
   /-- 女性は過去に提案してきた男性の中で最良の相手と婚約している-/
   bestProposal : state.allWomenEngagedToBestProposal
+  /-- 現在の相手はnextRankよりも低い順位にある -/
+  nextRank_gt_engagedRank : state.nextRank_gt_engagedRank
 
 /-- GSアルゴリズムの1ステップ -/
 def Step {sm : SMP n} (vs : ValidGSState sm) : ValidGSState sm :=
@@ -44,12 +46,13 @@ def Step {sm : SMP n} (vs : ValidGSState sm) : ValidGSState sm :=
     have hnext := spec.right -- mはすべての人に申し出をしたわけではない
     have newValidEngagement := proposeStep_preserves_validEngagement (sm:=sm) s m hm hnext vs.validEngagement
     have newbestProposal := proposeStep_preserves_allWomenEngagedToBestProposal (sm:=sm) s m hnext vs.bestProposal
-
+    have newNextRank_gt_engagedRank := proposeStep_preserves_nextRank_gt_engagedRank (sm:=sm) s m hnext vs.nextRank_gt_engagedRank
     let newState := s.proposeStep m hnext
     {
       state := newState
       validEngagement := newValidEngagement
       bestProposal := newbestProposal
+      nextRank_gt_engagedRank := newNextRank_gt_engagedRank
     }
 
 def GSiteration {sm : SMP n} (vs : ValidGSState sm) (k : ℕ) : ValidGSState sm :=
@@ -70,7 +73,8 @@ def GSloop {sm : SMP n} (k : ℕ) : ValidGSState sm :=
   let initialvalidState : ValidGSState sm := {
     state := initial_state,
     validEngagement := initial_validEngagement,
-    bestProposal := initial_bestProposal
+    bestProposal := initial_bestProposal,
+    nextRank_gt_engagedRank := initial_nextRank_gt_engagedRank
   }
   GSiteration initialvalidState k
 
