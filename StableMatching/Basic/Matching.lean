@@ -29,12 +29,14 @@ def partnerOfWoman
     (w : sm.Woman) : sm.Man :=
   M.equiv.symm w
 
+@[simp]
 theorem partnerOfWoman_partnerOfMan
     {sm : SMP n}
     (M : sm.Matching) (m : sm.Man) :
     M.partnerOfWoman (M.partnerOfMan m) = m := by
   simp [partnerOfWoman, partnerOfMan]
 
+@[simp]
 theorem partnerOfMan_partnerOfWoman
     {sm : SMP n}
     (M : sm.Matching) (w : sm.Woman) :
