@@ -115,6 +115,7 @@ def manAtRank
   ⟨(sm.womenRankImpl w.val).symm r⟩
 
 /-- manRank m (womanAtRank m r) = r -/
+@[simp]
 theorem manRank_womanAtRank
     {sm : SMP n}
     (m : sm.Man) (r : Fin n) :
@@ -122,6 +123,7 @@ theorem manRank_womanAtRank
   simp [manRank, womanAtRank]
 
 /-- womanRank w (manAtRank w r) = r -/
+@[simp]
 theorem womanRank_manAtRank
     {sm : SMP n}
     (w : sm.Woman) (r : Fin n) :

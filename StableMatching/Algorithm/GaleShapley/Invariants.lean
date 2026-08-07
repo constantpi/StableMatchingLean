@@ -93,15 +93,10 @@ theorem proposeStep_hasProposed_of_ne
   unfold proposeStep hasProposed
   if hm : m' = m then
     simp [hm]
-    -- #check manRank_injective -- StableMatching.SMP.manRank_injective {n : ℕ} {sm : SMP n} (m : sm.Man) : Function.Injective (manRank m)
-    -- #check manRank_womanAtRank -- StableMatching.SMP.manRank_womanAtRank {n : ℕ} {sm : SMP n} (m : sm.Man) (r : Fin n) : manRank m (womanAtRank m r) = r
-
     have woman_to_rank_inj := manRank_injective m
     -- manRank m w ≠ manRank m (s.proposedWoman m hnext) であることを示す必要がある
     set next_rank_m : Fin n := ⟨s.nextRank m, hnext⟩ with hnext_rank
-    have h_proposed_rank : sm.manRank m (s.proposedWoman m hnext) = next_rank_m := by
-      simp [proposedWoman]
-      exact manRank_womanAtRank m next_rank_m
+    have h_proposed_rank : sm.manRank m (s.proposedWoman m hnext) = next_rank_m := by simp [proposedWoman, hnext_rank]
     have h_ne : sm.manRank m w ≠ next_rank_m := by
       intro h_eq
       rw [← h_proposed_rank] at h_eq
