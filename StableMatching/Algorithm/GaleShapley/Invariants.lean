@@ -127,7 +127,7 @@ def allWomenEngagedToBestProposal
   -- 各ペア(m, w)について、男性mが女性wに提案したことがある場合、女性wは男性mと仮の婚約をしているか、または女性wは男性mよりも好ましい男性と仮の婚約をしていることを保証する。
   ∀ m: sm.Man, ∀ w: sm.Woman, s.hasProposed m w → match s.engaged w with
     | none => False
-    | some cur_m => (m = cur_m ∨ cur_m ≺[w] m)
+    | some cur_m => cur_m ≼[w] m
 
 /-- allWomenEngagedToBestProposalがアルゴリズム中で保持される -/
 theorem proposeStep_preserves_allWomenEngagedToBestProposal
@@ -166,7 +166,7 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
         | some cur_m =>
           simp [engaged] at h_accept
           simp
-          unfold Woman.Prefers at *
+          unfold Woman.Prefers Woman.PrefersOrEqual at *
           -- womanRank関数がinjectiveであることを用いて m = cur_m ↔ womanRank w m = womanRank w cur_m を示す
           have : m = cur_m ↔ womanRank w m = womanRank w cur_m := by
             constructor
@@ -174,7 +174,6 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
               rw [h_eq]
             · intro h_eq
               exact womanRank_injective w h_eq
-          rw [this]
           omega
     else
       -- m_1が現在の提案男性mと異なる場合
@@ -195,15 +194,8 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
           simp [h_accept]
           -- unfold receivesProposal at h_accept
           simp [receivesProposal, pre_engage] at h_accept
-          right
-          -- hprev_mwのorの分解をする
-          match hprev_mw with
-          | Or.inl h_eq =>
-            rw [h_eq]
-            exact h_accept
-          | Or.inr h_pref =>
-            -- Transを使う
-            exact Woman.prefers_trans w h_accept h_pref
+          unfold Woman.Prefers Woman.PrefersOrEqual at *
+          omega
         else
           -- 提案が拒否された場合
           simp [proposeStep, ← h_w_is_proposed]

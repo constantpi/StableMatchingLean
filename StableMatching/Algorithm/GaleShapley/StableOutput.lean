@@ -27,15 +27,8 @@ theorem stable_of_noProposingMan
     omega
   have w_bestproposal := s.bestProposal m w mProposed_w
   simp [hw_engaged] at w_bestproposal
-  match w_bestproposal with
-  | Or.inl h =>
-    rw [← h] at blocking
-    unfold Woman.Prefers at blocking
-    omega
-  | Or.inr h =>
-    unfold Woman.Prefers at blocking
-    unfold Woman.Prefers at h
-    omega
+  unfold Woman.Prefers Woman.PrefersOrEqual at *
+  omega
 
 /-- GaleShapleyアルゴリズム-/
 def GaleShapley (sm : SMP n) : StableMatching sm :=
