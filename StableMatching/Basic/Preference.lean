@@ -68,6 +68,7 @@ instance womanPrefersOrEqualDecidable
   unfold Woman.PrefersOrEqual
   infer_instance
 
+@[simp]
 theorem Man.prefersOrEqual_refl
     {sm : SMP n}
     (m : sm.Man) : ∀ w, w ≼[m] w := by
@@ -80,6 +81,7 @@ theorem Man.prefersOrEqual_trans
   intro w₁ w₂ w₃ h₁ h₂
   exact le_trans h₁ h₂
 
+@[simp]
 theorem Woman.prefersOrEqual_refl
     {sm : SMP n}
     (w : sm.Woman) : ∀ m, m ≼[w] m := by
@@ -92,6 +94,7 @@ theorem Woman.prefersOrEqual_trans
   intro m₁ m₂ m₃ h₁ h₂
   exact le_trans h₁ h₂
 
+@[simp]
 theorem Man.prefers_irrefl
     {sm : SMP n}
     (m : sm.Man) : ∀ w, ¬ (w ≺[m] w) := by
@@ -124,6 +127,7 @@ theorem Man.prefers_total
     exact lt_or_gt_of_ne this
   simp_all [Man.Prefers]
 
+@[simp]
 theorem Woman.prefers_irrefl
     {sm : SMP n}
     (w : sm.Woman) : ∀ m, ¬ (m ≺[w] m) := by
