@@ -226,6 +226,60 @@ theorem initial_allWomenEngagedToBestProposal
     {sm : SMP n} :
     (GSState.initial sm).allWomenEngagedToBestProposal := by simp [initial, allWomenEngagedToBestProposal, hasProposed]
 
+/-- 仮の婚約をしている相手のランクよりもnextRankのほうが大きい -/
+def nextRank_gt_engagedRank
+    {sm : SMP n}
+    (s : GSState sm)
+    : Prop :=
+  ∀ m: sm.Man, ∀ w: sm.Woman, s.engaged w = some m → (s.nextRank m).val > (sm.manRank m w).val
+
+/-- nextRank_gt_engagedRankがアルゴリズム中で保持される -/
+theorem proposeStep_preserves_nextRank_gt_engagedRank
+    {sm : SMP n}
+    (s : GSState sm)
+    (m : sm.Man)
+    (hnext : s.nextRank m < n)
+    (hvalid : s.nextRank_gt_engagedRank) :
+    (proposeStep s m hnext).nextRank_gt_engagedRank := by
+  unfold nextRank_gt_engagedRank at *
+  intro m_1 w_1 h_engaged
+  -- m_1のnextRankは下がることはない。
+  have h_nextRank_non_decreasing : ((proposeStep s m hnext).nextRank m_1).val ≥ s.nextRank m_1 := by
+    rw [proposeStep_nextRank]
+    if h_m_eq : m_1 = m then
+      simp [h_m_eq]
+    else
+      simp [h_m_eq]
+
+  -- proposedWomanがw_1と同じかどうかで場合分けをする
+  if h_w_eq : w_1 = s.proposedWoman m hnext then
+    simp [proposeStep,] at *
+    simp [← h_w_eq] at h_engaged
+
+    if h_accept : receivesProposal w_1 m (s.engaged w_1) then
+      -- 提案が受け入れられた場合は m_1 = mであることがわかる
+      simp [h_accept] at h_engaged
+      simp [← h_engaged]
+      -- そして w_1は提案相手なので、manRank m w_1 = nextRank m であることがわかる
+      simp [proposedWoman] at h_w_eq
+      have : (manRank m w_1).val = (s.nextRank m).val := by
+        rw [h_w_eq]
+        simp [manRank_womanAtRank]
+      rw [this]
+      omega
+    else
+      -- 提案が拒否された場合
+      simp [h_accept] at h_engaged
+      -- もともとm_1はw_1と仮の婚約をしていたことになる
+      have := hvalid m_1 w_1 h_engaged
+      omega
+  else
+    -- proposedWomanがw_1と異なる場合、engagedは変わらないので、sの時点での不等式を使う
+    have h_engaged_prev := proposeStep_engaged_of_ne s m hnext w_1 h_w_eq
+    rw [h_engaged_prev] at h_engaged
+    have := hvalid m_1 w_1 h_engaged
+    omega
+
 end GSState
 end SMP
 end StableMatching
