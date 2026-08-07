@@ -37,6 +37,17 @@ theorem stable_of_noProposingMan
     unfold Woman.Prefers at h
     omega
 
+/-- GaleShapleyアルゴリズム-/
+def GaleShapley (sm : SMP n) : StableMatching sm :=
+  let s : ValidGSState sm := GSloop (n * n + 1)
+  have hno : noProposingMan s := GSloop_terminates_at_n2_plus_1
+  let matching := matching_of_noProposingMan s hno
+  have hstable : matching.IsStable := stable_of_noProposingMan s hno
+  { matching := matching, isStable := hstable }
+
+/-- 安定マッチングの存在性-/
+theorem exists_stable_matching (sm : SMP n) : Nonempty (StableMatching sm) :=
+  ⟨GaleShapley sm⟩
 
 end GSState
 end SMP
