@@ -3,3 +3,4 @@
 -- import StableMatching.Basic
 
 import StableMatching.Algorithm.GaleShapley
+import StableMatching.Examples.Basic
