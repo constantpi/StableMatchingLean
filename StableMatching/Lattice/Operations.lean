@@ -237,6 +237,58 @@ theorem menBetterMatching_partnerOfMan
     (menBetterMatching M₁ M₂).partnerOfMan m = menBetterPartner M₁ M₂ m :=
   rfl
 
+theorem prefers_both_of_prefers_menBetterPartner
+    {sm : SMP n}
+    (M₁ M₂ : StableMatching sm) (m : sm.Man) (w : sm.Woman)
+    (h : w ≺[m] menBetterPartner M₁ M₂ m) :
+    (w ≺[m] M₁.matching.partnerOfMan m) ∧
+      (w ≺[m] M₂.matching.partnerOfMan m) := by
+  by_cases hpref : M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m
+  · rw [menBetterPartner_eq_first_of_prefers M₁ M₂ m hpref] at h
+    exact ⟨h, m.prefers_trans h hpref⟩
+  · rw [menBetterPartner_eq_second_of_not_prefers M₁ M₂ m hpref] at h
+    by_cases heq : M₂.matching.partnerOfMan m = M₁.matching.partnerOfMan m
+    · exact ⟨heq ▸ h, h⟩
+    · have hsecond : M₂.matching.partnerOfMan m ≺[m]
+          M₁.matching.partnerOfMan m :=
+        (m.prefers_total heq).resolve_right hpref
+      exact ⟨m.prefers_trans h hsecond, h⟩
+
+/-- すべての男性にとってより好ましいパートナーを選んでも、安定性は保たれる。 -/
+theorem menBetterMatching_isStable
+    {sm : SMP n}
+    (M₁ M₂ : StableMatching sm) :
+    (menBetterMatching M₁ M₂).IsStable := by
+  intro m w hblocking
+  rcases hblocking with ⟨hm, hw⟩
+  rw [menBetterMatching_partnerOfMan] at hm
+  obtain ⟨hm₁, hm₂⟩ := prefers_both_of_prefers_menBetterPartner M₁ M₂ m w hm
+  -- mはM₁とM₂の両方で現在のパートナーよりもwを好む
+  have hw₁ := woman_prefers_current_of_man_prefers_other M₁ m w hm₁
+  have hw₂ := woman_prefers_current_of_man_prefers_other M₂ m w hm₂
+  let m' := (menBetterMatching M₁ M₂).partnerOfWoman w
+  change m ≺[w] m' at hw
+  have hm'w : menBetterPartner M₁ M₂ m' = w := by
+    rw [← menBetterMatching_partnerOfMan]
+    exact (menBetterMatching M₁ M₂).partnerOfMan_partnerOfWoman w
+  rcases menBetterPartner_eq_first_or_second M₁ M₂ m' with hm'₁ | hm'₂
+  · have : M₁.matching.partnerOfMan m' = w := hm'₁.symm.trans hm'w
+    have hpartner : M₁.matching.partnerOfWoman w = m' := by simp [← this]
+    rw [hpartner] at hw₁
+    exact w.prefers_asymm hw₁ hw
+  · have : M₂.matching.partnerOfMan m' = w := hm'₂.symm.trans hm'w
+    have hpartner : M₂.matching.partnerOfWoman w = m' := by simp [← this]
+    rw [hpartner] at hw₂
+    exact w.prefers_asymm hw₂ hw
+
+/-- 2つの安定マッチングから、すべての男性にとって好ましいパートナーを
+割り当てることで得られる安定マッチング。 -/
+def menBetter
+    {sm : SMP n}
+    (M₁ M₂ : StableMatching sm) : StableMatching sm :=
+  { matching := menBetterMatching M₁ M₂
+    isStable := menBetterMatching_isStable M₁ M₂ }
+
 end Lattice
 end SMP
 end StableMatching
