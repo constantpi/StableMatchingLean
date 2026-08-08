@@ -43,6 +43,26 @@ theorem partnerOfMan_partnerOfWoman
     M.partnerOfMan (M.partnerOfWoman w) = w := by
   simp [partnerOfWoman, partnerOfMan]
 
+/-- partnerOfManの単射性 -/
+theorem partnerOfMan_injective
+    {sm : SMP n}
+    (M : sm.Matching)
+    (m₁ m₂ : sm.Man) :
+    (M.partnerOfMan m₁ = M.partnerOfMan m₂) → m₁ = m₂ := by
+  intro h
+  rw [partnerOfMan] at h
+  exact M.equiv.injective h
+
+/-- partnerOfWomanの単射性 -/
+theorem partnerOfWoman_injective
+    {sm : SMP n}
+    (M : sm.Matching)
+    (w₁ w₂ : sm.Woman) :
+    (M.partnerOfWoman w₁ = M.partnerOfWoman w₂) → w₁ = w₂ := by
+  intro h
+  rw [partnerOfWoman] at h
+  exact M.equiv.symm.injective h
+
 end Matching
 
 end SMP
