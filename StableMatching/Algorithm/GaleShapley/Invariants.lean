@@ -6,8 +6,8 @@ namespace GSState
 
 /-- 有効なエンゲージメントを表す述語。-/
 def ValidEngagement
-    {sm : SMP n}
-    (s : GSState sm) : Prop :=
+    {smp : SMP n}
+    (s : GSState smp) : Prop :=
   ∀ w₁ w₂ m,
     s.engaged w₁ = some m →
     s.engaged w₂ = some m →
@@ -16,9 +16,9 @@ def ValidEngagement
 
 /-- 提案ステップは有効なエンゲージメントを保持する -/
 theorem proposeStep_preserves_validEngagement
-    {sm : SMP n}
-    (s : GSState sm)
-    (m : sm.Man)
+    {smp : SMP n}
+    (s : GSState smp)
+    (m : smp.Man)
     (hm : ¬ s.isEngaged m)
     (hnext : s.nextRank m < n)
     (hvalid : s.ValidEngagement) :
@@ -70,25 +70,25 @@ theorem proposeStep_preserves_validEngagement
 
 /-- 初期状態において有効なエンゲージメントが成立することを示す -/
 theorem initial_validEngagement
-    {sm : SMP n} :
-    (GSState.initial sm).ValidEngagement := by simp [initial, ValidEngagement]
+    {smp : SMP n} :
+    (GSState.initial smp).ValidEngagement := by simp [initial, ValidEngagement]
 
 /-- 提案の回数を計算する。Σ_m  (s.nextRank m).val) -/
 def totalProposals
-    {sm : SMP n}
-    (s : GSState sm) : Nat :=
-  ∑ m : sm.Man, (s.nextRank m).val
+    {smp : SMP n}
+    (s : GSState smp) : Nat :=
+  ∑ m : smp.Man, (s.nextRank m).val
 
 
 /-- (m, w)が今回の提案ペアでないなら、wに提案したことがある男性集合は変わらない -/
 theorem proposeStep_hasProposed_of_ne
-    {sm : SMP n}
-    (s : GSState sm)
-    (m : sm.Man)
+    {smp : SMP n}
+    (s : GSState smp)
+    (m : smp.Man)
     (hnext : s.nextRank m < n)
-    (w : sm.Woman)
+    (w : smp.Woman)
     (hne : w ≠ s.proposedWoman m hnext)
-    : ∀ m': sm.Man, (proposeStep s m hnext).hasProposed m' w ↔ s.hasProposed m' w := by
+    : ∀ m': smp.Man, (proposeStep s m hnext).hasProposed m' w ↔ s.hasProposed m' w := by
   intro m'
   unfold proposeStep hasProposed
   if hm : m' = m then
@@ -96,18 +96,18 @@ theorem proposeStep_hasProposed_of_ne
     have woman_to_rank_inj := manRank_injective m
     -- manRank m w ≠ manRank m (s.proposedWoman m hnext) であることを示す必要がある
     set next_rank_m : Fin n := ⟨s.nextRank m, hnext⟩ with hnext_rank
-    have h_proposed_rank : sm.manRank m (s.proposedWoman m hnext) = next_rank_m := by simp [proposedWoman, hnext_rank]
-    have h_ne : sm.manRank m w ≠ next_rank_m := by
+    have h_proposed_rank : smp.manRank m (s.proposedWoman m hnext) = next_rank_m := by simp [proposedWoman, hnext_rank]
+    have h_ne : smp.manRank m w ≠ next_rank_m := by
       intro h_eq
       rw [← h_proposed_rank] at h_eq
       have h_eq' : w = s.proposedWoman m hnext := woman_to_rank_inj h_eq
       contradiction
-    have h_ne_val: (sm.manRank m w).val ≠ next_rank_m.val := by
+    have h_ne_val: (smp.manRank m w).val ≠ next_rank_m.val := by
       intro h_eq
-      have h_eq' : sm.manRank m w = next_rank_m := Fin.val_inj.mp h_eq
+      have h_eq' : smp.manRank m w = next_rank_m := Fin.val_inj.mp h_eq
       contradiction
     set next_rank_m_val := (next_rank_m).val
-    set man_rank_m_w_val := (sm.manRank m w).val
+    set man_rank_m_w_val := (smp.manRank m w).val
     omega
   else
     simp [hm]
@@ -116,19 +116,19 @@ theorem proposeStep_hasProposed_of_ne
 
 /-- 女性が過去に提案してきた男性の中で最良の人と仮の婚約をしている -/
 def allWomenEngagedToBestProposal
-    {sm : SMP n}
-    (s : GSState sm)
+    {smp : SMP n}
+    (s : GSState smp)
     : Prop :=
   -- 各ペア(m, w)について、男性mが女性wに提案したことがある場合、女性wは男性mと仮の婚約をしているか、または女性wは男性mよりも好ましい男性と仮の婚約をしていることを保証する。
-  ∀ m: sm.Man, ∀ w: sm.Woman, s.hasProposed m w → match s.engaged w with
+  ∀ m: smp.Man, ∀ w: smp.Woman, s.hasProposed m w → match s.engaged w with
     | none => False
     | some cur_m => cur_m ≼[w] m
 
 /-- allWomenEngagedToBestProposalがアルゴリズム中で保持される -/
 theorem proposeStep_preserves_allWomenEngagedToBestProposal
-    {sm : SMP n}
-    (s : GSState sm)
-    (m : sm.Man)
+    {smp : SMP n}
+    (s : GSState smp)
+    (m : smp.Man)
     (hnext : s.nextRank m < n)
     (hvalid : s.allWomenEngagedToBestProposal) :
     (proposeStep s m hnext).allWomenEngagedToBestProposal := by
@@ -138,7 +138,7 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
   set next_rank_m : Fin n := ⟨s.nextRank m, hnext⟩ with hnext_rank
   -- set new_s := proposeStep s m hm hnext with hnew_s
   -- wが提案相手かどうかで場合分けをする
-  -- if h_w_is_proposed : w = sm.womanAtRank m next_rank_m then
+  -- if h_w_is_proposed : w = smp.womanAtRank m next_rank_m then
   if h_w_is_proposed : w = s.proposedWoman m hnext then
     -- wが提案相手の場合、m_1が現在の提案男性mと同じかどうかで場合分けをする
     if h_m_eq : m_1 = m then
@@ -210,21 +210,21 @@ theorem proposeStep_preserves_allWomenEngagedToBestProposal
 
 /-- 初期状態において、すべての女性は過去に提案してきた男性の中で最良の人と仮の婚約をしていることを示す -/
 theorem initial_allWomenEngagedToBestProposal
-    {sm : SMP n} :
-    (GSState.initial sm).allWomenEngagedToBestProposal := by simp [initial, allWomenEngagedToBestProposal, hasProposed]
+    {smp : SMP n} :
+    (GSState.initial smp).allWomenEngagedToBestProposal := by simp [initial, allWomenEngagedToBestProposal, hasProposed]
 
 /-- 仮の婚約をしている相手のランクよりもnextRankのほうが大きい -/
 def nextRank_gt_engagedRank
-    {sm : SMP n}
-    (s : GSState sm)
+    {smp : SMP n}
+    (s : GSState smp)
     : Prop :=
-  ∀ m: sm.Man, ∀ w: sm.Woman, s.engaged w = some m → (s.nextRank m).val = (sm.manRank m w).val + 1
+  ∀ m: smp.Man, ∀ w: smp.Woman, s.engaged w = some m → (s.nextRank m).val = (smp.manRank m w).val + 1
 
 /-- nextRank_gt_engagedRankがアルゴリズム中で保持される -/
 theorem proposeStep_preserves_nextRank_gt_engagedRank
-    {sm : SMP n}
-    (s : GSState sm)
-    (m : sm.Man)
+    {smp : SMP n}
+    (s : GSState smp)
+    (m : smp.Man)
     (hm: ¬ s.isEngaged m)
     (hnext : s.nextRank m < n)
     (hvalid : s.nextRank_gt_engagedRank) :
@@ -277,8 +277,8 @@ theorem proposeStep_preserves_nextRank_gt_engagedRank
 
 /-- 初期状態において、nextRank_gt_engagedRankが成り立つ -/
 theorem initial_nextRank_gt_engagedRank
-    {sm : SMP n} :
-    (GSState.initial sm).nextRank_gt_engagedRank := by
+    {smp : SMP n} :
+    (GSState.initial smp).nextRank_gt_engagedRank := by
   simp [initial, nextRank_gt_engagedRank]
 
 

@@ -32,27 +32,27 @@ def ofRanks
   }
 
 /--
-stable marriage problem `sm` に属する男性。
+stable marriage problem `smp` に属する男性。
 
 異なる問題 `sm₁`, `sm₂` に対して
 `sm₁.Man` と `sm₂.Man` は異なる型になる。
 -/
-structure Man (sm : SMP n) where
+structure Man (smp : SMP n) where
   val : Fin n
 deriving DecidableEq, Fintype
 
 /- 男性を内部番号の順に列挙する iterator。-/
 def Man.iterator
-    {sm : SMP n} : List sm.Man :=
+    {smp : SMP n} : List smp.Man :=
   List.ofFn (fun i : Fin n => ⟨i⟩)
 
 /--
-stable marriage problem `sm` に属する女性。
+stable marriage problem `smp` に属する女性。
 
 異なる問題 `sm₁`, `sm₂` に対して
 `sm₁.Woman` と `sm₂.Woman` は異なる型になる。
 -/
-structure Woman (sm : SMP n) where
+structure Woman (smp : SMP n) where
   val : Fin n
 deriving DecidableEq, Fintype
 
@@ -62,10 +62,10 @@ deriving DecidableEq, Fintype
 値が小さいほど好ましい。
 -/
 def manRank
-    {sm : SMP n}
-    (m : sm.Man)
-    (w : sm.Woman) : Fin n :=
-  sm.menRankImpl m.val w.val
+    {smp : SMP n}
+    (m : smp.Man)
+    (w : smp.Woman) : Fin n :=
+  smp.menRankImpl m.val w.val
 
 /--
 女性 `w` から見た男性 `m` の順位。
@@ -73,14 +73,14 @@ def manRank
 値が小さいほど好ましい。
 -/
 def womanRank
-    {sm : SMP n}
-    (w : sm.Woman)
-    (m : sm.Man) : Fin n :=
-  sm.womenRankImpl w.val m.val
+    {smp : SMP n}
+    (w : smp.Woman)
+    (m : smp.Man) : Fin n :=
+  smp.womenRankImpl w.val m.val
 
 theorem manRank_injective
-    {sm : SMP n}
-    (m : sm.Man) : Function.Injective (manRank m) := by
+    {smp : SMP n}
+    (m : smp.Man) : Function.Injective (manRank m) := by
   intro w₁ w₂ h
   cases w₁ with
   | mk v₁ =>
@@ -88,11 +88,11 @@ theorem manRank_injective
     | mk v₂ =>
       simp only [manRank] at h
       congr
-      exact (sm.menRankImpl m.val).injective h
+      exact (smp.menRankImpl m.val).injective h
 
 theorem womanRank_injective
-    {sm : SMP n}
-    (w : sm.Woman) : Function.Injective (womanRank w) := by
+    {smp : SMP n}
+    (w : smp.Woman) : Function.Injective (womanRank w) := by
   intro m₁ m₂ h
   cases m₁ with
   | mk v₁ =>
@@ -100,37 +100,37 @@ theorem womanRank_injective
     | mk v₂ =>
       simp only [womanRank] at h
       congr
-      exact (sm.womenRankImpl w.val).injective h
+      exact (smp.womenRankImpl w.val).injective h
 
 def womanAtRank
-    {sm : SMP n}
-    (m : sm.Man)
-    (r : Fin n) : sm.Woman :=
-  ⟨(sm.menRankImpl m.val).symm r⟩
+    {smp : SMP n}
+    (m : smp.Man)
+    (r : Fin n) : smp.Woman :=
+  ⟨(smp.menRankImpl m.val).symm r⟩
 
 def manAtRank
-    {sm : SMP n}
-    (w : sm.Woman)
-    (r : Fin n) : sm.Man :=
-  ⟨(sm.womenRankImpl w.val).symm r⟩
+    {smp : SMP n}
+    (w : smp.Woman)
+    (r : Fin n) : smp.Man :=
+  ⟨(smp.womenRankImpl w.val).symm r⟩
 
 /-- manRank m (womanAtRank m r) = r -/
 @[simp]
 theorem manRank_womanAtRank
-    {sm : SMP n}
-    (m : sm.Man) (r : Fin n) :
+    {smp : SMP n}
+    (m : smp.Man) (r : Fin n) :
     manRank m (womanAtRank m r) = r := by
   simp [manRank, womanAtRank]
 
 /-- womanRank w (manAtRank w r) = r -/
 @[simp]
 theorem womanRank_manAtRank
-    {sm : SMP n}
-    (w : sm.Woman) (r : Fin n) :
+    {smp : SMP n}
+    (w : smp.Woman) (r : Fin n) :
     womanRank w (manAtRank w r) = r := by
   simp [womanRank, manAtRank]
 
-theorem card_man (sm : SMP n) : Fintype.card sm.Man = n := by
+theorem card_man (smp : SMP n) : Fintype.card smp.Man = n := by
   calc
     _ = Fintype.card (Fin n) := by
       apply Fintype.card_congr
@@ -145,7 +145,7 @@ theorem card_man (sm : SMP n) : Fintype.card sm.Man = n := by
           rfl
       }
     _ = n := Fintype.card_fin n
-theorem card_woman (sm : SMP n) : Fintype.card sm.Woman = n := by
+theorem card_woman (smp : SMP n) : Fintype.card smp.Woman = n := by
   calc
     _ = Fintype.card (Fin n) := by
       apply Fintype.card_congr

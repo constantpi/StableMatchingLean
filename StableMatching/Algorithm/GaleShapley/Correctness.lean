@@ -6,10 +6,10 @@ namespace GSState
 
 /-- 提案男性がいなくかつ未婚の男性がいれば彼のnextRank=n-/
 theorem nextRank_eq_n_of_noProposingMan_and_unengaged
-    {sm : SMP n}
-    (s : ValidGSState sm)
+    {smp : SMP n}
+    (s : ValidGSState smp)
     (hno : noProposingMan s)
-    (m : sm.Man)
+    (m : smp.Man)
     (hunengaged : ¬ s.state.isEngaged m) :
     s.state.nextRank m = n := by
   -- nextRank mの値とnの大小関係で場合分けをする
@@ -38,11 +38,11 @@ theorem nextRank_eq_n_of_noProposingMan_and_unengaged
 
 /-- 提案男性がいなくかつ未婚の男性がいれば女性は全員既婚-/
 theorem allWomenEngaged_of_noProposingMan_and_unengaged
-    {sm : SMP n}
-    (s : ValidGSState sm)
+    {smp : SMP n}
+    (s : ValidGSState smp)
     (hno : noProposingMan s)
-    -- : (∃m : sm.Man, ¬ s.state.isEngaged m) → ∀ w : sm.Woman, ¬ (s.state.engaged w = none) := by
-    : (∃m : sm.Man, ¬ s.state.isEngaged m) → ∀ w : sm.Woman, ∃m : sm.Man, s.state.engaged w = some m := by
+    -- : (∃m : smp.Man, ¬ s.state.isEngaged m) → ∀ w : smp.Woman, ¬ (s.state.engaged w = none) := by
+    : (∃m : smp.Man, ¬ s.state.isEngaged m) → ∀ w : smp.Woman, ∃m : smp.Man, s.state.engaged w = some m := by
   intro hunengaged w
   have ⟨m, hm⟩ := hunengaged
   have hasProposed : s.state.hasProposed m w := by
@@ -58,16 +58,16 @@ theorem allWomenEngaged_of_noProposingMan_and_unengaged
 
 /-- 提案男性がいないなら男性は全員既婚-/
 theorem allMenEngaged_of_noProposingMan
-    {sm : SMP n}
-    (s : ValidGSState sm)
+    {smp : SMP n}
+    (s : ValidGSState smp)
     (hno : noProposingMan s) :
-    ∀ m : sm.Man, s.state.isEngaged m := by
+    ∀ m : smp.Man, s.state.isEngaged m := by
   by_contra h
   push_neg at h
   have allWomenEngaged := allWomenEngaged_of_noProposingMan_and_unengaged s hno h
   -- 女性から男性への写像が作れる
   -- 全女性が婚約しているので、その婚約相手を男性として取り出す
-  let partner : sm.Woman → sm.Man := fun w => Classical.choose (allWomenEngaged w)
+  let partner : smp.Woman → smp.Man := fun w => Classical.choose (allWomenEngaged w)
 
 
 
@@ -83,9 +83,9 @@ theorem allMenEngaged_of_noProposingMan
     exact s.validEngagement w₁ w₂ m1 hm1 hm2
 
   -- 濃度が同じであることを使って、単射が全射であることを示す
-  have same_card : Finset.card (Finset.univ : Finset sm.Woman) = Finset.card (Finset.univ : Finset sm.Man) := by
+  have same_card : Finset.card (Finset.univ : Finset smp.Woman) = Finset.card (Finset.univ : Finset smp.Man) := by
     simp [Finset.card_univ]
-    rw [sm.card_woman, sm.card_man]
+    rw [smp.card_woman, smp.card_man]
 
   have partner_bijective : Function.Bijective partner := by
     apply (Fintype.bijective_iff_injective_and_card partner).mpr
@@ -110,14 +110,14 @@ theorem allMenEngaged_of_noProposingMan
 
 /-- 提案男性がいないなら女性は全員既婚-/
 theorem allWomenEngaged_of_noProposingMan
-    {sm : SMP n}
-    (s : ValidGSState sm)
+    {smp : SMP n}
+    (s : ValidGSState smp)
     (hno : noProposingMan s) :
-    ∀ w : sm.Woman, ∃ m : sm.Man, s.state.engaged w = some m := by
+    ∀ w : smp.Woman, ∃ m : smp.Man, s.state.engaged w = some m := by
   -- まず男性は全員既婚であることを示す
   have allMenEngaged := allMenEngaged_of_noProposingMan s hno
   unfold isEngaged at allMenEngaged
-  let m_to_w : sm.Man → sm.Woman := fun m => Classical.choose (allMenEngaged m)
+  let m_to_w : smp.Man → smp.Woman := fun m => Classical.choose (allMenEngaged m)
   have m_to_w_injective : Function.Injective m_to_w := by
     intro m₁ m₂ h
     unfold m_to_w at h
@@ -127,9 +127,9 @@ theorem allWomenEngaged_of_noProposingMan
     simp [hspec1] at hspec2
     exact hspec2
 
-  have same_card : Finset.card (Finset.univ : Finset sm.Man) = Finset.card (Finset.univ : Finset sm.Woman) := by
+  have same_card : Finset.card (Finset.univ : Finset smp.Man) = Finset.card (Finset.univ : Finset smp.Woman) := by
     simp [Finset.card_univ]
-    rw [sm.card_man, sm.card_woman]
+    rw [smp.card_man, smp.card_woman]
 
   have m_to_w_bijective : Function.Bijective m_to_w := by
     apply (Fintype.bijective_iff_injective_and_card m_to_w).mpr

@@ -6,39 +6,39 @@ namespace Lattice
 
 /-- 2つの安定マッチングで `m` に割り当てられたパートナーのうち、`m` が好む方を選ぶ。単射性が証明されるまでは、意図的に関数としてのみ定義する。 -/
 def menBetterPartner
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm)
-    (m : sm.Man) : sm.Woman :=
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp)
+    (m : smp.Man) : smp.Woman :=
   if M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m then
     M₁.matching.partnerOfMan m
   else
     M₂.matching.partnerOfMan m
 
 theorem menBetterPartner_eq_first_of_prefers
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man)
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man)
     (h : M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m) :
     menBetterPartner M₁ M₂ m = M₁.matching.partnerOfMan m := by
   simp [menBetterPartner, h]
 
 theorem menBetterPartner_eq_second_of_not_prefers
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man)
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man)
     (h : ¬ M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m) :
     menBetterPartner M₁ M₂ m = M₂.matching.partnerOfMan m := by
   simp [menBetterPartner, h]
 
 theorem memBetterPartner_eq_first_and_second
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man)
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man)
     (h : M₁.matching.partnerOfMan m = M₂.matching.partnerOfMan m) :
     menBetterPartner M₁ M₂ m = M₁.matching.partnerOfMan m ∧
       menBetterPartner M₁ M₂ m = M₂.matching.partnerOfMan m := by
   simp [menBetterPartner, h]
 
 theorem menBetterPartner_eq_first_or_second
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
     menBetterPartner M₁ M₂ m = M₁.matching.partnerOfMan m ∨
       menBetterPartner M₁ M₂ m = M₂.matching.partnerOfMan m := by
   by_cases h : M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m
@@ -46,8 +46,8 @@ theorem menBetterPartner_eq_first_or_second
   · exact Or.inr (menBetterPartner_eq_second_of_not_prefers M₁ M₂ m h)
 
 theorem menBetterPartner_is_better_or_equal_first
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
     menBetterPartner M₁ M₂ m ≼[m] M₁.matching.partnerOfMan m := by
   by_cases h : M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m
   . simp [menBetterPartner, h]
@@ -57,8 +57,8 @@ theorem menBetterPartner_is_better_or_equal_first
 
 /-- menBetterPartnerは可換-/
 theorem menBetterPartner_comm
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
     menBetterPartner M₁ M₂ m = menBetterPartner M₂ M₁ m := by
   unfold menBetterPartner
   set w₁ := M₁.matching.partnerOfMan m
@@ -66,7 +66,7 @@ theorem menBetterPartner_comm
   by_cases eq : w₁ = w₂
   · simp [eq]
   .
-    have compare := Man.prefers_total (sm:=sm) m eq
+    have compare := Man.prefers_total (smp:=smp) m eq
     cases compare with
     | inl h =>
       have h' : ¬ w₂ ≺[m] w₁ := Man.prefers_asymm m h
@@ -78,10 +78,10 @@ theorem menBetterPartner_comm
 
 /-- 安定マッチングにおいて、ある男性が現在のパートナーよりも別の女性を好むなら、その女性は現在のパートナーをその男性よりも好む。 -/
 theorem woman_prefers_current_of_man_prefers_other
-    {sm : SMP n}
-    (M : StableMatching sm)
-    (m : sm.Man)
-    (w : sm.Woman)
+    {smp : SMP n}
+    (M : StableMatching smp)
+    (m : smp.Man)
+    (w : smp.Woman)
     (hm : w ≺[m] M.matching.partnerOfMan m) :
     M.matching.partnerOfWoman w ≺[w] m := by
   have hne : M.matching.partnerOfWoman w ≠ m := by
@@ -96,10 +96,10 @@ theorem woman_prefers_current_of_man_prefers_other
 
 /-- 安定マッチングにおいて、ある女性が現在のパートナーよりも別の男性を好むなら、その男性は現在のパートナーをその女性よりも好む。 -/
 theorem man_prefers_current_of_woman_prefers_other
-    {sm : SMP n}
-    (M : StableMatching sm)
-    (m : sm.Man)
-    (w : sm.Woman)
+    {smp : SMP n}
+    (M : StableMatching smp)
+    (m : smp.Man)
+    (w : smp.Woman)
     (hw : m ≺[w] M.matching.partnerOfWoman w) :
     M.matching.partnerOfMan m ≺[m] w := by
   have hne : M.matching.partnerOfMan m ≠ w := by
@@ -115,13 +115,13 @@ theorem man_prefers_current_of_woman_prefers_other
 /-- 男性ごとにより好ましいパートナーを選ぶ関数は単射である。
 2つの元のマッチングの安定性により、2つの交差する場合は排除される。 -/
 theorem menBetterPartner_injective
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) :
     Function.Injective (menBetterPartner M₁ M₂) := by
   intro m₁ m₂ hchosen
   -- 補題: m1, m2が異なりm1はM1を選び、m2はM2を選んだことで衝突したことは矛盾
   have contra
-      (Ma Mb : StableMatching sm)
+      (Ma Mb : StableMatching smp)
       (h₁ : Ma.matching.partnerOfMan m₁ ≺[m₁] Mb.matching.partnerOfMan m₁)
       (h₂ : Mb.matching.partnerOfMan m₂ ≺[m₂] Ma.matching.partnerOfMan m₂)
       (hchosen : menBetterPartner Ma Mb m₁ = menBetterPartner Ma Mb m₂)
@@ -147,7 +147,7 @@ theorem menBetterPartner_injective
 
   -- 補題: m1とm2がともにMaを選んだことで衝突したならm1=m2
   have eq_chosen
-      (Ma Mb : StableMatching sm)
+      (Ma Mb : StableMatching smp)
       (h₁ : Ma.matching.partnerOfMan m₁ ≺[m₁] Mb.matching.partnerOfMan m₁)
       (h₂ : Ma.matching.partnerOfMan m₂ ≺[m₂] Mb.matching.partnerOfMan m₂)
       (hchosen : menBetterPartner Ma Mb m₁ = menBetterPartner Ma Mb m₂)
@@ -159,8 +159,8 @@ theorem menBetterPartner_injective
 
   -- 補題: m1がMa,Mbで同じパートナを選んでいて、衝突したならm1=m2
   have eq_chosen_same
-      (Ma Mb : StableMatching sm)
-      (ma mb : sm.Man)
+      (Ma Mb : StableMatching smp)
+      (ma mb : smp.Man)
       (h : Ma.matching.partnerOfMan ma = Mb.matching.partnerOfMan ma)
       (hchosen : menBetterPartner Ma Mb ma = menBetterPartner Ma Mb mb)
       : ma = mb := by
@@ -181,13 +181,13 @@ theorem menBetterPartner_injective
   if eq_1: M₁.matching.partnerOfMan m₁ = M₂.matching.partnerOfMan m₁ then
     exact eq_chosen_same M₁ M₂ m₁ m₂ eq_1 hchosen
   else
-    have m_compare := Man.prefers_total (sm:=sm) m₁ eq_1
+    have m_compare := Man.prefers_total (smp:=smp) m₁ eq_1
     cases m_compare with
     | inl pref1 =>
       if eq_2: M₁.matching.partnerOfMan m₂ = M₂.matching.partnerOfMan m₂ then
         exact (eq_chosen_same M₁ M₂ m₂ m₁ eq_2 hchosen.symm).symm
       else
-        have m_compare2 := Man.prefers_total (sm:=sm) m₂ eq_2
+        have m_compare2 := Man.prefers_total (smp:=smp) m₂ eq_2
         cases m_compare2 with
         | inl pref2 =>
           exact eq_chosen M₁ M₂ pref1 pref2 hchosen
@@ -198,7 +198,7 @@ theorem menBetterPartner_injective
       if eq_2: M₁.matching.partnerOfMan m₂ = M₂.matching.partnerOfMan m₂ then
         exact (eq_chosen_same M₁ M₂ m₂ m₁ eq_2 hchosen.symm).symm
       else
-        have m_compare2 := Man.prefers_total (sm:=sm) m₂ eq_2
+        have m_compare2 := Man.prefers_total (smp:=smp) m₂ eq_2
         have : menBetterPartner M₂ M₁ m₁ = menBetterPartner M₂ M₁ m₂ := by
           rw [menBetterPartner_comm, menBetterPartner_comm M₂ M₁]
           exact hchosen
@@ -212,16 +212,16 @@ theorem menBetterPartner_injective
           exact eq_chosen M₂ M₁ pref2 pref1 this
 
 theorem menBetterPartner_bijective
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) :
     Function.Bijective (menBetterPartner M₁ M₂) := by
   apply (Fintype.bijective_iff_injective_and_card (menBetterPartner M₁ M₂)).mpr
-  exact ⟨menBetterPartner_injective M₁ M₂, by rw [sm.card_man, sm.card_woman]⟩
+  exact ⟨menBetterPartner_injective M₁ M₂, by rw [smp.card_man, smp.card_woman]⟩
 
 /-- 男性ごとにより好ましいパートナーを選ぶ関数から誘導される完全マッチング。 -/
 def menBetterMatching
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) : Matching sm :=
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) : Matching smp :=
   let f := menBetterPartner M₁ M₂
   let hbij := menBetterPartner_bijective M₁ M₂
   { equiv :=
@@ -232,14 +232,14 @@ def menBetterMatching
 
 @[simp]
 theorem menBetterMatching_partnerOfMan
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
     (menBetterMatching M₁ M₂).partnerOfMan m = menBetterPartner M₁ M₂ m :=
   rfl
 
 theorem prefers_both_of_prefers_menBetterPartner
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) (m : sm.Man) (w : sm.Woman)
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) (w : smp.Woman)
     (h : w ≺[m] menBetterPartner M₁ M₂ m) :
     (w ≺[m] M₁.matching.partnerOfMan m) ∧
       (w ≺[m] M₂.matching.partnerOfMan m) := by
@@ -256,8 +256,8 @@ theorem prefers_both_of_prefers_menBetterPartner
 
 /-- すべての男性にとってより好ましいパートナーを選んでも、安定性は保たれる。 -/
 theorem menBetterMatching_isStable
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) :
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) :
     (menBetterMatching M₁ M₂).IsStable := by
   intro m w hblocking
   rcases hblocking with ⟨hm, hw⟩
@@ -284,8 +284,8 @@ theorem menBetterMatching_isStable
 /-- 2つの安定マッチングから、すべての男性にとって好ましいパートナーを
 割り当てることで得られる安定マッチング。 -/
 def menBetter
-    {sm : SMP n}
-    (M₁ M₂ : StableMatching sm) : StableMatching sm :=
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) : StableMatching smp :=
   { matching := menBetterMatching M₁ M₂
     isStable := menBetterMatching_isStable M₁ M₂ }
 
