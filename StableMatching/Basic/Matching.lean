@@ -11,6 +11,27 @@ structure Matching (smp : SMP n) where
 
 namespace Matching
 
+/-- 男女を交換した問題上の対応する完全マッチング。-/
+def swap
+    (smp : SMP n)
+    (M : smp.Matching) : (smp.swap).Matching :=
+  {
+    equiv := {
+      toFun := fun m =>
+        smp.swapWomanEquiv
+          (M.equiv.symm (smp.swapManEquiv.symm m))
+      invFun := fun w =>
+        smp.swapManEquiv
+          (M.equiv (smp.swapWomanEquiv.symm w))
+      left_inv := by
+        intro m
+        simp
+      right_inv := by
+        intro w
+        simp
+    }
+  }
+
 /--
 男性 `m` のパートナー。
 -/
@@ -28,6 +49,24 @@ def partnerOfWoman
     (M : smp.Matching)
     (w : smp.Woman) : smp.Man :=
   M.equiv.symm w
+
+@[simp]
+theorem partnerOfMan_swap
+    {smp : SMP n}
+    (M : smp.Matching) (w : smp.Woman) :
+    (M.swap).partnerOfMan (smp.swapMan w) =
+      smp.swapWoman (M.partnerOfWoman w) := by
+  simp [swap, partnerOfMan, partnerOfWoman, swapManEquiv, swapWomanEquiv,
+    swapMan, swapWoman]
+
+@[simp]
+theorem partnerOfWoman_swap
+    {smp : SMP n}
+    (M : smp.Matching) (m : smp.Man) :
+    (M.swap).partnerOfWoman (smp.swapWoman m) =
+      smp.swapMan (M.partnerOfMan m) := by
+  simp [swap, partnerOfMan, partnerOfWoman, swapManEquiv, swapWomanEquiv,
+    swapMan, swapWoman]
 
 @[simp]
 theorem partnerOfWoman_partnerOfMan
