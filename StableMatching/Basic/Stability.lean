@@ -23,6 +23,20 @@ def IsStable
     (M : smp.Matching) : Prop :=
   ∀ m w, ¬ M.IsBlockingPair m w
 
+/-- 安定なマッチングを男女交換しても安定性は保たれる。-/
+theorem isStable_swap
+    {smp : SMP n}
+    {M : smp.Matching}
+    (hM : M.IsStable) :
+    (M.swap).IsStable := by
+  intro m w blocking
+  let oldW : smp.Woman := (smp.swapManEquiv).symm m
+  let oldM : smp.Man := (smp.swapWomanEquiv).symm w
+  apply hM oldM oldW
+  constructor
+  · simpa [oldW, oldM] using blocking.2
+  · simpa [oldW, oldM] using blocking.1
+
 end Matching
 
 /--
@@ -31,6 +45,15 @@ end Matching
 structure StableMatching (smp : SMP n) where
   matching : smp.Matching
   isStable : matching.IsStable
+
+/-- 安定マッチングを男女交換後の問題へ移す。-/
+def StableMatching.swap
+    {smp : SMP n}
+    (S : smp.StableMatching) : (smp.swap).StableMatching :=
+  {
+    matching := S.matching.swap
+    isStable := Matching.isStable_swap S.isStable
+  }
 
 
 end SMP
