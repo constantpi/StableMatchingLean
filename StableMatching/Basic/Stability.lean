@@ -55,6 +55,13 @@ def StableMatching.swap
     isStable := Matching.isStable_swap S.isStable
   }
 
+/- 男女を二回交換すると元の安定マッチングに戻る。 -/
+@[simp]
+theorem StableMatching.swap_swap
+    {smp : SMP n}
+    (S : smp.StableMatching) : S.swap.swap = S := by
+  rfl
+
 
 end SMP
 end StableMatching

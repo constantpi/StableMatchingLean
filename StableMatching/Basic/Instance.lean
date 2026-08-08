@@ -128,6 +128,11 @@ theorem womanRank_swap
     womanRank (smp.swapWoman m) (smp.swapMan w) = manRank m w := by
   rfl
 
+/-- 二回適用すると元に戻る -/
+@[simp]
+theorem swap_swap (smp : SMP n) : smp.swap.swap = smp := by
+  rfl
+
 theorem manRank_injective
     {smp : SMP n}
     (m : smp.Man) : Function.Injective (manRank m) := by

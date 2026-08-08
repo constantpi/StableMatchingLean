@@ -56,6 +56,35 @@ theorem Woman.prefers_swap
     (smp.swapMan w₁ ≺[smp.swapWoman m] smp.swapMan w₂) ↔ (w₁ ≺[m] w₂) := by
   rfl
 
+/- 選好も男女交換を二回適用すると元に戻る。 -/
+@[simp]
+theorem Man.prefers_swap_swap
+    {smp : SMP n} (m : smp.Man) (w₁ w₂ : smp.Woman) :
+    (smp.swap.swapWoman (smp.swapMan w₁) ≺[smp.swap.swapMan (smp.swapWoman m)]
+      smp.swap.swapWoman (smp.swapMan w₂)) ↔ (w₁ ≺[m] w₂) := by
+  rfl
+
+@[simp]
+theorem Woman.prefers_swap_swap
+    {smp : SMP n} (w : smp.Woman) (m₁ m₂ : smp.Man) :
+    (smp.swap.swapMan (smp.swapWoman m₁) ≺[smp.swap.swapWoman (smp.swapMan w)]
+      smp.swap.swapMan (smp.swapWoman m₂)) ↔ (m₁ ≺[w] m₂) := by
+  rfl
+
+@[simp]
+theorem Man.prefersOrEqual_swap_swap
+    {smp : SMP n} (m : smp.Man) (w₁ w₂ : smp.Woman) :
+    (smp.swap.swapWoman (smp.swapMan w₁) ≼[smp.swap.swapMan (smp.swapWoman m)]
+      smp.swap.swapWoman (smp.swapMan w₂)) ↔ (w₁ ≼[m] w₂) := by
+  rfl
+
+@[simp]
+theorem Woman.prefersOrEqual_swap_swap
+    {smp : SMP n} (w : smp.Woman) (m₁ m₂ : smp.Man) :
+    (smp.swap.swapMan (smp.swapWoman m₁) ≼[smp.swap.swapWoman (smp.swapMan w)]
+      smp.swap.swapMan (smp.swapWoman m₂)) ↔ (m₁ ≼[w] m₂) := by
+  rfl
+
 @[simp]
 theorem Man.prefersOrEqual_swap
     {smp : SMP n} (w : smp.Woman) (m₁ m₂ : smp.Man) :

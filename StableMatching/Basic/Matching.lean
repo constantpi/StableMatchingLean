@@ -32,6 +32,13 @@ def swap
     }
   }
 
+/- 男女を二回交換すると元のマッチングに戻る。 -/
+@[simp]
+theorem swap_swap
+    {smp : SMP n}
+    (M : smp.Matching) : M.swap.swap = M := by
+  rfl
+
 /--
 男性 `m` のパートナー。
 -/
