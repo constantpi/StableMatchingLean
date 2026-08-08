@@ -32,6 +32,18 @@ def ofRanks
   }
 
 /--
+男性と女性を入れ替えた stable marriage problem。
+
+交換後の男性の選好は元の女性の選好であり、交換後の女性の選好は
+元の男性の選好である。
+-/
+def swap (smp : SMP n) : SMP n :=
+  {
+    menRankImpl := smp.womenRankImpl
+    womenRankImpl := smp.menRankImpl
+  }
+
+/--
 stable marriage problem `smp` に属する男性。
 
 異なる問題 `sm₁`, `sm₂` に対して
@@ -56,6 +68,32 @@ structure Woman (smp : SMP n) where
   val : Fin n
 deriving DecidableEq, Fintype
 
+/-- 元の女性を、男女交換後の問題の男性として見る。-/
+def swapMan (smp : SMP n) (w : smp.Woman) : (swap smp).Man :=
+  ⟨w.val⟩
+
+/-- 元の男性を、男女交換後の問題の女性として見る。-/
+def swapWoman (smp : SMP n) (m : smp.Man) : (swap smp).Woman :=
+  ⟨m.val⟩
+
+/-- 元の女性と交換後の男性との間の自然な同値。-/
+def swapManEquiv (smp : SMP n) : smp.Woman ≃ (swap smp).Man :=
+  {
+    toFun := swapMan smp
+    invFun := fun m => ⟨m.val⟩
+    left_inv := by intro w; rfl
+    right_inv := by intro m; rfl
+  }
+
+/-- 元の男性と交換後の女性との間の自然な同値。-/
+def swapWomanEquiv (smp : SMP n) : smp.Man ≃ (swap smp).Woman :=
+  {
+    toFun := swapWoman smp
+    invFun := fun w => ⟨w.val⟩
+    left_inv := by intro m; rfl
+    right_inv := by intro w; rfl
+  }
+
 /--
 男性 `m` から見た女性 `w` の順位。
 
@@ -77,6 +115,18 @@ def womanRank
     (w : smp.Woman)
     (m : smp.Man) : Fin n :=
   smp.womenRankImpl w.val m.val
+
+@[simp]
+theorem manRank_swap
+    (smp : SMP n) (w : smp.Woman) (m : smp.Man) :
+    manRank (smp.swapMan w) (smp.swapWoman m) = womanRank w m := by
+  rfl
+
+@[simp]
+theorem womanRank_swap
+    (smp : SMP n) (m : smp.Man) (w : smp.Woman) :
+    womanRank (smp.swapWoman m) (smp.swapMan w) = manRank m w := by
+  rfl
 
 theorem manRank_injective
     {smp : SMP n}

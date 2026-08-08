@@ -44,6 +44,30 @@ notation:50 m₁ " ≺[" w "] " m₂ => Woman.Prefers w m₁ m₂
 notation:50 w₁ " ≼[" m "] " w₂ => Man.PrefersOrEqual m w₁ w₂
 notation:50 m₁ " ≼[" w "] " m₂ => Woman.PrefersOrEqual w m₁ m₂
 
+@[simp]
+theorem Man.prefers_swap
+    {smp : SMP n} (w : smp.Woman) (m₁ m₂ : smp.Man) :
+    (smp.swapWoman m₁ ≺[smp.swapMan w] smp.swapWoman m₂) ↔ (m₁ ≺[w] m₂) := by
+  rfl
+
+@[simp]
+theorem Woman.prefers_swap
+    {smp : SMP n} (m : smp.Man) (w₁ w₂ : smp.Woman) :
+    (smp.swapMan w₁ ≺[smp.swapWoman m] smp.swapMan w₂) ↔ (w₁ ≺[m] w₂) := by
+  rfl
+
+@[simp]
+theorem Man.prefersOrEqual_swap
+    {smp : SMP n} (w : smp.Woman) (m₁ m₂ : smp.Man) :
+    (smp.swapWoman m₁ ≼[smp.swapMan w] smp.swapWoman m₂) ↔ (m₁ ≼[w] m₂) := by
+  rfl
+
+@[simp]
+theorem Woman.prefersOrEqual_swap
+    {smp : SMP n} (m : smp.Man) (w₁ w₂ : smp.Woman) :
+    (smp.swapMan w₁ ≼[smp.swapWoman m] smp.swapMan w₂) ↔ (w₁ ≼[m] w₂) := by
+  rfl
+
 instance manPrefersDecidable
     {smp : SMP n} (m : smp.Man) (w₁ w₂ : smp.Woman) :
     Decidable (w₁ ≺[m] w₂) := by
