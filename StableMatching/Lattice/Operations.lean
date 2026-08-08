@@ -63,18 +63,17 @@ theorem menBetterPartner_comm
   unfold menBetterPartner
   set w₁ := M₁.matching.partnerOfMan m
   set w₂ := M₂.matching.partnerOfMan m
-  by_cases h : w₁ ≺[m] w₂
-  ·
-    have h' : ¬ w₂ ≺[m] w₁ := by
-      -- rw [Man.prefersOrEqual_iff_not_prefers] at h
-      sorry
-    simp [h, h']
+  by_cases eq : w₁ = w₂
+  · simp [eq]
   .
-    have h' : w₂ ≺[m] w₁ := by
-      -- rw [Man.prefersOrEqual_iff_not_prefers] at h
-      sorry
-    simp [h, h']
-
+    have compare := Man.prefers_total (sm:=sm) m eq
+    cases compare with
+    | inl h =>
+      have h' : ¬ w₂ ≺[m] w₁ := Man.prefers_asymm m h
+      simp [h, h']
+    | inr h =>
+      have h' : ¬ w₁ ≺[m] w₂ := Man.prefers_asymm m h
+      simp [h, h']
 
 
 /-- 安定マッチングにおいて、ある男性が現在のパートナーよりも別の女性を好むなら、その女性は現在のパートナーをその男性よりも好む。 -/
