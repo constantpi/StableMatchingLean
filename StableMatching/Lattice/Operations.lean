@@ -75,6 +75,14 @@ theorem menBetterPartner_comm
       have h' : ¬ w₁ ≺[m] w₂ := Man.prefers_asymm m h
       simp [h, h']
 
+theorem menBetterPartner_is_better_or_equal_second
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    menBetterPartner M₁ M₂ m ≼[m] M₂.matching.partnerOfMan m := by
+  rw [menBetterPartner_comm M₁ M₂ m]
+  exact menBetterPartner_is_better_or_equal_first M₂ M₁ m
+
+
 
 /-- 安定マッチングにおいて、ある男性が現在のパートナーよりも別の女性を好むなら、その女性は現在のパートナーをその男性よりも好む。 -/
 theorem woman_prefers_current_of_man_prefers_other
@@ -367,6 +375,42 @@ def menWorsePartner
     M₂.matching.partnerOfMan m
   else
     M₁.matching.partnerOfMan m
+
+theorem menWorsePartner_is_worse_or_equal_first
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    M₁.matching.partnerOfMan m ≼[m] menWorsePartner M₁ M₂ m := by
+  unfold menWorsePartner
+  by_cases h : M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m
+  · simp [h]
+    exact (Man.prefersOrEqual_iff_not_prefers m _ _).mpr (Man.prefers_asymm m h)
+  · simp [h]
+
+theorem menWorsePartner_comm
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    menWorsePartner M₁ M₂ m = menWorsePartner M₂ M₁ m := by
+  unfold menWorsePartner
+  set w₁ := M₁.matching.partnerOfMan m
+  set w₂ := M₂.matching.partnerOfMan m
+  by_cases eq : w₁ = w₂
+  · simp [eq]
+  .
+    have compare := Man.prefers_total (smp:=smp) m eq
+    cases compare with
+    | inl h =>
+      have h' : ¬ w₂ ≺[m] w₁ := Man.prefers_asymm m h
+      simp [h, h']
+    | inr h =>
+      have h' : ¬ w₁ ≺[m] w₂ := Man.prefers_asymm m h
+      simp [h, h']
+
+theorem menWorsePartner_is_worse_or_equal_second
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    M₂.matching.partnerOfMan m ≼[m] menWorsePartner M₁ M₂ m := by
+  rw [menWorsePartner_comm M₁ M₂ m]
+  exact menWorsePartner_is_worse_or_equal_first M₂ M₁ m
 
 /-- womenBetterで男性はM₁とM₂のうち望ましくないパートナーを選ぶ。-/
 theorem womenBetterMatching_partnerOfMan
