@@ -134,6 +134,14 @@ theorem Man.prefersOrEqual_trans
   intro w₁ w₂ w₃ h₁ h₂
   exact le_trans h₁ h₂
 
+theorem Man.prefersOrEqual_antisymm
+    {smp : SMP n} {w₁ w₂ : smp.Woman} (m : smp.Man)
+    (h₁ : w₁ ≼[m] w₂) (h₂ : w₂ ≼[m] w₁) : w₁ = w₂ := by
+  unfold Man.PrefersOrEqual at h₁ h₂
+  have : manRank m w₁ = manRank m w₂ := by omega
+  exact manRank_injective m this
+
+
 @[simp]
 theorem Woman.prefersOrEqual_refl
     {smp : SMP n}
@@ -146,6 +154,13 @@ theorem Woman.prefersOrEqual_trans
     (w : smp.Woman) : ∀ ⦃m₁ m₂ m₃⦄, (m₁ ≼[w] m₂) → (m₂ ≼[w] m₃) → (m₁ ≼[w] m₃) := by
   intro m₁ m₂ m₃ h₁ h₂
   exact le_trans h₁ h₂
+
+theorem Woman.prefersOrEqual_antisymm
+    {smp : SMP n} {m₁ m₂ : smp.Man} (w : smp.Woman)
+    (h₁ : m₁ ≼[w] m₂) (h₂ : m₂ ≼[w] m₁) : m₁ = m₂ := by
+  unfold Woman.PrefersOrEqual at h₁ h₂
+  have : womanRank w m₁ = womanRank w m₂ := by omega
+  exact womanRank_injective w this
 
 theorem Man.prefers_iff_not_prefersOrEqual
     {smp : SMP n}
