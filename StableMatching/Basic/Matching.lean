@@ -110,6 +110,7 @@ theorem partnerOfWoman_injective
   exact M.equiv.symm.injective h
 
 /- 男性ごとのパートナーが一致するマッチングの外延性 -/
+@[ext]
 theorem ext_partnerOfMan
     {smp : SMP n}
     {M₁ M₂ : smp.Matching}

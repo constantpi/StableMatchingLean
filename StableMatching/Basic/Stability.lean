@@ -47,6 +47,7 @@ structure StableMatching (smp : SMP n) where
   isStable : matching.IsStable
 
 /- 男性ごとのパートナーが一致する安定マッチングの外延性 -/
+@[ext]
 theorem StableMatching.ext_partnerOfMan
     {smp : SMP n}
     {S₁ S₂ : smp.StableMatching}
