@@ -109,6 +109,22 @@ theorem partnerOfWoman_injective
   rw [partnerOfWoman] at h
   exact M.equiv.symm.injective h
 
+/- 男性ごとのパートナーが一致するマッチングの外延性 -/
+theorem ext_partnerOfMan
+    {smp : SMP n}
+    {M₁ M₂ : smp.Matching}
+    (h : ∀ m, M₁.partnerOfMan m = M₂.partnerOfMan m) :
+    M₁ = M₂ := by
+  let ⟨e1⟩ := M₁
+  let ⟨e2⟩ := M₂
+  have he : e1 = e2 := by
+    apply Equiv.ext
+    intro m
+    have := h m
+    simp [partnerOfMan] at this
+    exact this
+  rw [he]
+
 end Matching
 
 end SMP

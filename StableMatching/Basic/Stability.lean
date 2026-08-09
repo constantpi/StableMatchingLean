@@ -46,6 +46,17 @@ structure StableMatching (smp : SMP n) where
   matching : smp.Matching
   isStable : matching.IsStable
 
+/- 男性ごとのパートナーが一致する安定マッチングの外延性 -/
+theorem StableMatching.ext_partnerOfMan
+    {smp : SMP n}
+    {S₁ S₂ : smp.StableMatching}
+    (h : ∀ m, S₁.matching.partnerOfMan m = S₂.matching.partnerOfMan m) :
+    S₁ = S₂ := by
+  let ⟨M₁, h₁⟩ := S₁
+  let ⟨M₂, h₂⟩ := S₂
+  have hM : M₁ = M₂ := Matching.ext_partnerOfMan h
+  simp [hM]
+
 /-- 安定マッチングを男女交換後の問題へ移す。-/
 def StableMatching.swap
     {smp : SMP n}
