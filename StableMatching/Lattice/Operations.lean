@@ -289,6 +289,154 @@ def menBetter
   { matching := menBetterMatching M₁ M₂
     isStable := menBetterMatching_isStable M₁ M₂ }
 
+/-- 男女を交換した問題で `menBetter` を適用し、元の問題に戻して得られる安定マッチング。 -/
+def womenBetter
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) : StableMatching smp :=
+  (menBetter M₁.swap M₂.swap).swap
+
+/-- womenBetterで女性はM₁とM₂の両方で好ましいパートナーを選ぶ。-/
+theorem womenBetter_partnerOfWoman
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (w : smp.Woman) :
+    (womenBetter M₁ M₂).matching.partnerOfWoman w =
+      if M₁.matching.partnerOfWoman w ≺[w] M₂.matching.partnerOfWoman w then
+        M₁.matching.partnerOfWoman w
+      else
+        M₂.matching.partnerOfWoman w := by
+  -- これはほとんど定義から明らかなのでひたすら展開して簡約する
+  unfold womenBetter menBetter menBetterMatching
+  simp [StableMatching.swap, Matching.swap, Matching.partnerOfWoman, Matching.partnerOfMan, swapManEquiv, swapWomanEquiv, swapMan, swapWoman, menBetterPartner]
+  split
+  · rename_i h'
+    have h : M₁.matching.partnerOfWoman w ≺[w] M₂.matching.partnerOfWoman w := by
+      simp [SMP.swap, Man.Prefers, manRank] at h'
+      exact h'
+    have h'' : M₁.matching.equiv.symm w ≺[w] M₂.matching.equiv.symm w := by
+      simp [Matching.partnerOfWoman] at h
+      exact h
+    simp [h'']
+    rfl
+  · rename_i h'
+    have h : ¬ M₁.matching.partnerOfWoman w ≺[w] M₂.matching.partnerOfWoman w := by
+      simp [SMP.swap, Man.Prefers, Woman.Prefers, manRank, womanRank] at *
+      exact h'
+    have h'' : ¬ M₁.matching.equiv.symm w ≺[w] M₂.matching.equiv.symm w := by
+      simp [Matching.partnerOfWoman] at h
+      exact h
+    simp [h'']
+    rfl
+
+/-- womenBetterで男性はM₁とM₂のいずれかのパートナーを選ぶ。-/
+theorem womenBetter_partnerOfMan_either
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    (womenBetter M₁ M₂).matching.partnerOfMan m = M₁.matching.partnerOfMan m ∨
+      (womenBetter M₁ M₂).matching.partnerOfMan m = M₂.matching.partnerOfMan m := by
+  -- womenBetter_partnerOfWomanから女性側がM₁とM₂のいずれかを選ぶことがわかるので、男性側も同様にM₁とM₂のいずれかを選ぶことがわかる
+  -- 背理法をつかってmのパートナーがM₁とM₂のいずれでもないと仮定する
+  by_contra h
+  push_neg at h
+  obtain ⟨h1, h2⟩ := h
+  set w := (womenBetter M₁ M₂).matching.partnerOfMan m with hw
+  have h1' : M₁.matching.partnerOfWoman w ≠ m := by
+    intro h
+    have : M₁.matching.partnerOfMan m = w := by simp [← h]
+    rw [this] at h1
+    contradiction
+  have h2' : M₂.matching.partnerOfWoman w ≠ m := by
+    intro h
+    have : M₂.matching.partnerOfMan m = w := by simp [← h]
+    rw [this] at h2
+    contradiction
+  have hw' : (womenBetter M₁ M₂).matching.partnerOfWoman w = m := by simp [hw]
+  have h_better := womenBetter_partnerOfWoman M₁ M₂ w
+  rw [hw'] at h_better
+  have h1'' : ¬ M₁.matching.partnerOfWoman w ≺[w] M₂.matching.partnerOfWoman w := by
+    intro h
+    simp [h] at h_better
+    exact h1' h_better.symm
+  simp [h1''] at h_better
+  exact h2' h_better.symm
+
+def menWorsePartner
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp)
+    (m : smp.Man) : smp.Woman :=
+  if M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m then
+    M₂.matching.partnerOfMan m
+  else
+    M₁.matching.partnerOfMan m
+
+/-- womenBetterで男性はM₁とM₂のうち望ましくないパートナーを選ぶ。-/
+theorem womenBetterMatching_partnerOfMan
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    (womenBetter M₁ M₂).matching.partnerOfMan m = menWorsePartner M₁ M₂ m := by
+  unfold menWorsePartner
+
+  have either := womenBetter_partnerOfMan_either M₁ M₂ m
+  if eq : M₁.matching.partnerOfMan m = M₂.matching.partnerOfMan m then
+    simp [eq] at *
+    simp [either]
+  else
+    cases either with
+    | inl h =>
+      simp [h]
+      intro m1_better
+      exfalso
+      set w := M₁.matching.partnerOfMan m with hw
+      have inv_h : (womenBetter M₁ M₂).matching.partnerOfWoman w = m := by simp [← h]
+      have h1 : M₁.matching.partnerOfWoman w = m := by simp [hw]
+      have h2 : M₂.matching.partnerOfWoman w ≠ m := by
+        intro h
+        have : M₂.matching.partnerOfMan m = w := by simp [← h]
+        rw [this] at eq
+        contradiction
+      have h3 : m ≺[w] M₂.matching.partnerOfWoman w := by
+        -- これはwがM₁のパートナーを選んだことから、M₁のパートナーをM₂のパートナーよりも好むことを意味する
+        have := womenBetter_partnerOfWoman M₁ M₂ w
+        simp [inv_h, h1] at this
+        by_contra contra
+        exact h2.symm (this contra)
+      -- m1_betterとh3から、M₂においてmとwがblocking pairになることがわかる
+      have blocking : M₂.matching.IsBlockingPair m w := ⟨m1_better, h3⟩
+      exact M₂.isStable m w blocking
+    | inr h =>
+      simp [h]
+      intro m2_better
+      have m2_better' : M₂.matching.partnerOfMan m ≺[m] M₁.matching.partnerOfMan m := by
+        have := Man.prefers_total (smp:=smp) m eq
+        cases this with
+        | inl h' =>
+          exfalso
+          exact m2_better h'
+        | inr h' => exact h'
+      exfalso
+      set w := M₂.matching.partnerOfMan m with hw
+      have inv_h : (womenBetter M₁ M₂).matching.partnerOfWoman w = m := by simp [← h]
+      have h1 : M₂.matching.partnerOfWoman w = m := by simp [hw]
+      have h2 : M₁.matching.partnerOfWoman w ≠ m := by
+        intro h
+        have : M₁.matching.partnerOfMan m = w := by simp [← h]
+        rw [this] at eq
+        contradiction
+      have h3 : m ≺[w] M₁.matching.partnerOfWoman w := by
+        -- これはwがM₂のパートナーを選んだことから、M₂のパートナーをM₁のパートナーよりも好むことを意味する
+        have := womenBetter_partnerOfWoman M₁ M₂ w
+        simp [inv_h, h1] at this
+        by_contra contra
+        have compare : M₁.matching.partnerOfWoman w ≺[w] m := by
+          have := Woman.prefers_total (smp:=smp) w h2
+          cases this with
+          | inl h' => exact h'
+          | inr h' =>
+            exfalso
+            exact contra h'
+        exact h2.symm (this compare)
+      have blocking : M₁.matching.IsBlockingPair m w := ⟨m2_better', h3⟩
+      exact M₁.isStable m w blocking
+
 end Lattice
 end SMP
 end StableMatching
