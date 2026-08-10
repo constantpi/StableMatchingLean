@@ -60,6 +60,65 @@ theorem menWorse_isLUB
     · simp [h]
       exact hM.left m
 
+instance stableMatchingLattice : Lattice (StableMatching smp) := by
+  let partialOrder : PartialOrder (StableMatching smp) := inferInstance
+  let supSemilattice : SemilatticeSup (StableMatching smp) :=
+    { toPartialOrder := partialOrder
+      sup := womenBetter
+      le_sup_left := by
+        intro M₁ M₂
+        apply (menWorse_isLUB M₁ M₂).left
+        simp
+      le_sup_right := by
+        intro M₁ M₂
+        apply (menWorse_isLUB M₁ M₂).left
+        simp
+      sup_le := by
+        intro M₁ M₂ M h₁ h₂
+        apply (menWorse_isLUB M₁ M₂).right
+        intro M' hM' m
+        cases hM' with
+        | inl hM₁ =>
+          rw [hM₁]
+          exact h₁ m
+        | inr hM₂ =>
+          rw [hM₂]
+          exact h₂ m
+      }
+  let infSemiLattice : SemilatticeInf (StableMatching smp) :=
+    { inf := menBetter
+      inf_le_left := by
+        intro M₁ M₂
+        apply (menBetter_isGLB M₁ M₂).left
+        simp
+      inf_le_right := by
+        intro M₁ M₂
+        apply (menBetter_isGLB M₁ M₂).left
+        simp
+      le_inf := by
+        intro M₁ M₂ M h₁ h₂
+        apply (menBetter_isGLB M₂ M).right
+        intro M' hM' m
+        cases hM' with
+        | inl hM₁ =>
+          rw [hM₁]
+          exact h₁ m
+        | inr hM₂ =>
+          rw [hM₂]
+          exact h₂ m
+    }
+  exact
+    {
+      sup := womenBetter
+      inf := menBetter
+      le_sup_left := supSemilattice.le_sup_left
+      le_sup_right := supSemilattice.le_sup_right
+      sup_le := supSemilattice.sup_le
+      inf_le_left := infSemiLattice.inf_le_left
+      inf_le_right := infSemiLattice.inf_le_right
+      le_inf := infSemiLattice.le_inf
+    }
+
 end Lattice
 end SMP
 end StableMatching
