@@ -4,4 +4,4 @@
 
 import StableMatching.Algorithm.GaleShapley
 import StableMatching.Examples.Basic
-import StableMatching.Lattice.Distributive
+import StableMatching.Lattice.Finite
