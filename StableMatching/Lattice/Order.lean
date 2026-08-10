@@ -58,6 +58,54 @@ instance : PartialOrder (StableMatching smp) where
   le_trans := le_trans_smp
   le_antisymm := le_antisymm_smp
 
+theorem le_iff_women_reverse
+    (M₁ M₂ : StableMatching smp) :
+    M₁ ≤ M₂ ↔
+      ∀ w,
+        M₂.matching.partnerOfWoman w ≼[w]
+        M₁.matching.partnerOfWoman w := by
+  constructor
+  case mp =>
+    intro h w
+    by_contra h'
+    have better1 : M₁.matching.partnerOfWoman w ≺[w] M₂.matching.partnerOfWoman w := by
+      rw [← Woman.prefers_iff_not_prefersOrEqual] at h'
+      exact h'
+    set m := M₁.matching.partnerOfWoman w with hm
+    have hw : M₁.matching.partnerOfMan m = w := by simp [hm]
+    have better2 : w ≼[m] M₂.matching.partnerOfMan m := by
+      rw [← hw]
+      exact h m
+    have better3 : w ≺[m] M₂.matching.partnerOfMan m := by
+      by_contra h''
+      rw [← Man.prefersOrEqual_iff_not_prefers] at h''
+      have : M₂.matching.partnerOfMan m = w := Man.prefersOrEqual_antisymm m h'' better2
+      have : M₂.matching.partnerOfWoman w = m := by simp [←this]
+      simp [this] at better1
+    --better1とbetter3から安定性に反することを導く
+    have h_stable := M₂.isStable
+    exact h_stable m w ⟨better3, better1⟩
+  case mpr =>
+    intro h m
+    by_contra h'
+    have better1 : M₂.matching.partnerOfMan m ≺[m] M₁.matching.partnerOfMan m := by
+      rw [← Man.prefers_iff_not_prefersOrEqual] at h'
+      exact h'
+    set w := M₂.matching.partnerOfMan m with hw
+    have hw' : M₂.matching.partnerOfWoman w = m := by simp [hw]
+    have better2 : m ≼[w] M₁.matching.partnerOfWoman w := by
+      rw [← hw']
+      exact h w
+    have better3 : m ≺[w] M₁.matching.partnerOfWoman w := by
+      by_contra h''
+      rw [← Woman.prefersOrEqual_iff_not_prefers] at h''
+      have : M₁.matching.partnerOfWoman w = m := Woman.prefersOrEqual_antisymm w h'' better2
+      have : M₁.matching.partnerOfMan m = w := by simp [←this]
+      simp [this] at better1
+    --better1とbetter3から安定性に反することを導く
+    have h_stable := M₁.isStable
+    exact h_stable m w ⟨better1, better3⟩
+
 end Lattice
 end SMP
 end StableMatching
