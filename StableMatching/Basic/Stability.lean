@@ -74,6 +74,40 @@ theorem StableMatching.swap_swap
     (S : smp.StableMatching) : S.swap.swap = S := by
   rfl
 
+def StableMatching.toMatching {smp : SMP n} :
+    StableMatching smp → Matching smp :=
+  fun S => S.matching
+
+theorem StableMatching.toMatching_injective {smp: SMP n} :
+    Function.Injective (StableMatching.toMatching (smp := smp)) := by
+  intro S₁ S₂ h
+  let ⟨M₁, h₁⟩ := S₁
+  let ⟨M₂, h₂⟩ := S₂
+  simp [toMatching] at h
+  ext m
+  simp [h]
+
+instance stableMatchingFinite
+    {smp : SMP n} :
+    Finite (StableMatching smp) :=
+  Finite.of_injective (StableMatching.toMatching (smp := smp))
+    (StableMatching.toMatching_injective (smp := smp))
+
+noncomputable instance stableMatchingFintype
+    {smp : SMP n} :
+    Fintype (StableMatching smp) :=
+  Fintype.ofFinite (StableMatching smp)
+
+theorem card_stableMatching_le_factorial
+    (smp : SMP n) :
+    Fintype.card (StableMatching smp) ≤ n.factorial := by
+  calc
+    Fintype.card (StableMatching smp)
+        ≤ Fintype.card (Matching smp) :=
+      Fintype.card_le_of_injective
+        (StableMatching.toMatching (smp := smp))
+        (StableMatching.toMatching_injective (smp := smp))
+    _ = n.factorial := Matching.card_matching smp
 
 end SMP
 end StableMatching

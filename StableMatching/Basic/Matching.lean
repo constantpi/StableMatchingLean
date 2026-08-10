@@ -126,7 +126,32 @@ theorem ext_partnerOfMan
     exact this
   rw [he]
 
-end Matching
+def matchingEquiv :
+    Matching smp ≃ (smp.Man ≃ smp.Woman) :=
+{
+  toFun := Matching.equiv
+  invFun := fun e => ⟨e⟩
+  left_inv := by intro M; cases M; rfl
+  right_inv := by intro e; rfl
+}
 
+instance matchingFintype
+    {smp : SMP n} :
+    Fintype (Matching smp) :=
+  Fintype.ofEquiv (smp.Man ≃ smp.Woman) (matchingEquiv (smp := smp)).symm
+
+theorem card_matching
+    (smp : SMP n) :
+    Fintype.card (Matching smp) = n.factorial := by
+  let manWomanEquiv : smp.Man ≃ smp.Woman :=
+    { toFun := fun m => ⟨m.val⟩
+      invFun := fun w => ⟨w.val⟩
+      left_inv := by intro m; rfl
+      right_inv := by intro w; rfl }
+  rw [Fintype.card_congr (matchingEquiv (smp := smp))]
+  rw [Fintype.card_equiv manWomanEquiv]
+  rw [smp.card_man]
+
+end Matching
 end SMP
 end StableMatching
