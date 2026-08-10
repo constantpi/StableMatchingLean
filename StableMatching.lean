@@ -5,3 +5,4 @@
 import StableMatching.Algorithm.GaleShapley
 import StableMatching.Examples.Basic
 import StableMatching.Lattice.Finite
+import StableMatching.Rotation.Edge
