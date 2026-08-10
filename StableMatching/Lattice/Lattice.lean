@@ -119,6 +119,30 @@ instance stableMatchingLattice : Lattice (StableMatching smp) := by
       le_inf := infSemiLattice.le_inf
     }
 
+@[simp]
+theorem inf_eq_menBetter
+    (M₁ M₂ : StableMatching smp) :
+    M₁ ⊓ M₂ = menBetter M₁ M₂ := rfl
+
+@[simp]
+theorem sup_eq_womenBetter
+    (M₁ M₂ : StableMatching smp) :
+    M₁ ⊔ M₂ = womenBetter M₁ M₂ := rfl
+
+@[simp]
+theorem inf_partnerOfMan
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    (M₁ ⊓ M₂).matching.partnerOfMan m
+      = menBetterPartner M₁ M₂ m := by
+  rfl
+
+@[simp]
+theorem sup_partnerOfMan
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    (M₁ ⊔ M₂).matching.partnerOfMan m
+      = menWorsePartner M₁ M₂ m := by
+  simp [womenBetterMatching_partnerOfMan]
+
 end Lattice
 end SMP
 end StableMatching
