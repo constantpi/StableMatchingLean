@@ -297,6 +297,13 @@ def menBetter
   { matching := menBetterMatching M₁ M₂
     isStable := menBetterMatching_isStable M₁ M₂ }
 
+@[simp]
+theorem menBetter_partnerOfMan
+    {smp : SMP n}
+    (M₁ M₂ : StableMatching smp) (m : smp.Man) :
+    (menBetter M₁ M₂).matching.partnerOfMan m = menBetterPartner M₁ M₂ m := by
+  rfl
+
 /-- 男女を交換した問題で `menBetter` を適用し、元の問題に戻して得られる安定マッチング。 -/
 def womenBetter
     {smp : SMP n}
@@ -413,6 +420,7 @@ theorem menWorsePartner_is_worse_or_equal_second
   exact menWorsePartner_is_worse_or_equal_first M₂ M₁ m
 
 /-- womenBetterで男性はM₁とM₂のうち望ましくないパートナーを選ぶ。-/
+@[simp]
 theorem womenBetterMatching_partnerOfMan
     {smp : SMP n}
     (M₁ M₂ : StableMatching smp) (m : smp.Man) :
