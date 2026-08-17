@@ -337,6 +337,41 @@ theorem eliminate_partnerOfMan_of_not_contains
   rw [ρ.eliminate_partnerOfMan,
     ρ.eliminatedPartner_of_not_contains m hm]
 
+/-- M < ρ.eliminateを示す-/
+theorem lt_eliminate
+    (ρ : ExposedRotation M) : M < ρ.eliminate := by
+  apply lt_of_le_of_ne
+  ·
+    -- 男性にとって回転の除去は改善しないことを示す
+    intro m
+    by_cases hm : ρ.ContainsMan M m
+    ·
+      obtain ⟨i, him⟩ := hm
+      rw [← him]
+      rw [ρ.matched, ρ.eliminate_partnerOfMan_man]
+      apply Nat.le_of_lt
+      exact ρ.movesDown i
+    · rw [ρ.eliminate_partnerOfMan_of_not_contains m hm]
+      simp
+  ·
+    -- man 0について相手が変わることを示す
+    intro h
+    let i0 : Fin ρ.k := ⟨0, by
+      have hk := ρ.hk
+      omega⟩
+    let i1 : Fin ρ.k := ⟨1, ρ.hk⟩
+    have hequal : M.matching.partnerOfMan (ρ.man i0) = ρ.eliminate.matching.partnerOfMan (ρ.man i0) := by simp [h]
+    have h0 : M.matching.partnerOfMan (ρ.man i0) = ρ.woman i0 := by rw [ρ.matched]
+    have h1 : ρ.eliminate.matching.partnerOfMan (ρ.man i0) = ρ.woman i1 := by
+      simp [ρ.eliminate_partnerOfMan]
+      congr
+      simp [cycleNext, i0 ,i1]
+      have hk := ρ.hk
+      exact Nat.mod_eq_of_lt hk
+    simp [h0, h1] at hequal
+    apply ρ.woman_injective at hequal
+    simp [i0, i1] at hequal
+
 end ExposedRotation
 
 end Rotation
