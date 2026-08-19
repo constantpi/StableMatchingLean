@@ -372,6 +372,218 @@ theorem lt_eliminate
     apply ρ.woman_injective at hequal
     simp [i0, i1] at hequal
 
+/-- 回転に含まれない男性についてはMとNでペアは同じ -/
+theorem intermediate_partnerOfMan_of_not_contains
+    (ρ : ExposedRotation M)
+    (N : StableMatching smp)
+    (hMN : M ≤ N)
+    (hNE : N ≤ ρ.eliminate)
+    (m : smp.Man)
+    (hm : ¬ ρ.ContainsMan M m) :
+    N.matching.partnerOfMan m = M.matching.partnerOfMan m := by
+  have h₁ := hMN m
+  have h₂ := hNE m
+  rw [ρ.eliminate_partnerOfMan_of_not_contains m hm] at h₂
+  exact Man.prefersOrEqual_antisymm m h₂ h₁
+
+/-- Mとρ.eliminateの間のNはMまたはρ.eliminateのどちらかのパートナーと組むことになる。 -/
+theorem intermediate_changed_eq_next
+    (ρ : ExposedRotation M)
+    (N : StableMatching smp)
+    (hMN : M ≤ N)
+    (hNE : N ≤ ρ.eliminate)
+    (i : Fin ρ.k)
+    (hchange : N.matching.partnerOfMan (ρ.man i) ≠ M.matching.partnerOfMan (ρ.man i)) :
+    N.matching.partnerOfMan (ρ.man i) = ρ.woman (cycleNext ρ.hk i) := by
+  set w := N.matching.partnerOfMan (ρ.man i) with hw
+  -- w は現在の woman i とは異なる
+  have hw_ne : ρ.woman i ≠ w := by
+    rw [ρ.matched] at hchange
+    exact hchange.symm
+  -- M ≤ N なので、wはwoman iよりも望ましい
+  have hcur_lt : ρ.woman i ≺[ρ.man i] w := by
+    apply (Man.prefers_iff_prefersOrEqual_and_ne (ρ.man i) (ρ.woman i) w).mpr
+    constructor
+    .
+      rw [← ρ.matched, hw]
+      exact hMN (ρ.man i)
+    .
+      exact hw_ne
+  -- 女性側では N の方を好む
+  have hwoman_lt : ρ.man i ≺[w] M.matching.partnerOfWoman w := by
+    have hwoman_le : ρ.man i ≼[w] M.matching.partnerOfWoman w:= by
+      have := (Lattice.le_iff_women_reverse M N).mp hMN w
+      simp [hw] at this
+      rw [hw]
+      exact this
+    have hwoman_ne : ρ.man i ≠ M.matching.partnerOfWoman w := by
+      intro h
+      rw [← matching_partnerOfWoman_woman ρ i] at h
+      -- M.mathingの単射性を使う
+      have := M.matching.partnerOfWoman_injective (ρ.woman i) w h
+      contradiction
+    exact (Woman.prefers_iff_prefersOrEqual_and_ne w (ρ.man i) (M.matching.partnerOfWoman w)).mpr ⟨hwoman_le, hwoman_ne⟩
+  -- exposed rotation の nextIsBest
+  have hbest := ρ.nextIsBest i w hcur_lt hwoman_lt
+
+  -- 一方 N ≤ eliminate なので w ≼ next
+  have hw_le_next : w ≼[ρ.man i] ρ.woman (cycleNext ρ.hk i) := by
+    have h := hNE (ρ.man i)
+    simp at h
+    rw [hw]
+    exact h
+
+  exact Man.prefersOrEqual_antisymm (ρ.man i) hw_le_next hbest
+
+/-- 回転の除去前後の間に別の安定マッチングは存在しない。 -/
+theorem covBy_eliminate
+    (ρ : ExposedRotation M) :
+    CovBy M ρ.eliminate := by
+  apply covBy_of_eq_or_eq ρ.lt_eliminate
+  intro N hMN hNE
+  by_contra intermediate
+  push_neg at intermediate
+
+
+
+
+  sorry
+  -- classical
+  -- have partner_eq_next
+  --     (i : Fin ρ.k)
+  --     (hi : N.matching.partnerOfMan (ρ.man i) ≠
+  --       M.matching.partnerOfMan (ρ.man i)) :
+  --     N.matching.partnerOfMan (ρ.man i) =
+  --       ρ.woman (cycleNext ρ.hk i) := by
+  --   have holdle := hMN (ρ.man i)
+  --   rw [ρ.matched] at holdle
+  --   have hne : ρ.woman i ≠ N.matching.partnerOfMan (ρ.man i) := by
+  --     intro h
+  --     apply hi
+  --     rw [ρ.matched, h]
+  --   have holdPrefers : ρ.woman i ≺[ρ.man i]
+  --       N.matching.partnerOfMan (ρ.man i) := by
+  --     rcases Man.prefers_total (ρ.man i) hne with h | h
+  --     · exact h
+  --     · exact (not_lt_of_ge holdle h).elim
+  --   set w := N.matching.partnerOfMan (ρ.man i) with hw
+  --   have hwomanLe : ρ.man i ≼[w] M.matching.partnerOfWoman w := by
+  --     have h := (Lattice.le_iff_women_reverse M N).mp hMN w
+  --     have hinv : N.matching.partnerOfWoman w = ρ.man i := by
+  --       rw [hw]
+  --       simp
+  --     rw [hinv] at h
+  --     exact h
+  --   have hmanNe : ρ.man i ≠ M.matching.partnerOfWoman w := by
+  --     intro h
+  --     have hwM : M.matching.partnerOfMan (ρ.man i) = w := by
+  --       rw [h]
+  --       simp
+  --     exact hi hwM.symm
+  --   have hwomanPrefers : ρ.man i ≺[w]
+  --       M.matching.partnerOfWoman w := by
+  --     rcases Woman.prefers_total w hmanNe with h | h
+  --     · exact h
+  --     · exact (not_lt_of_ge hwomanLe h).elim
+  --   have hnextLe := ρ.nextIsBest i w
+  --     (by simpa [hw] using holdPrefers) hwomanPrefers
+  --   have hwLeNext := hNE (ρ.man i)
+  --   rw [ρ.eliminate_partnerOfMan_man, ← hw] at hwLeNext
+  --   exact (Man.prefersOrEqual_antisymm (ρ.man i) hwLeNext hnextLe)
+  -- have changed_next
+  --     (i : Fin ρ.k)
+  --     (hi : N.matching.partnerOfMan (ρ.man i) ≠
+  --       M.matching.partnerOfMan (ρ.man i)) :
+  --     N.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) ≠
+  --       M.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) := by
+  --   intro hnext
+  --   have hiPartner := partner_eq_next i hi
+  --   rw [ρ.matched] at hnext
+  --   have hmen := N.matching.partnerOfMan_injective
+  --     (ρ.man i) (ρ.man (cycleNext ρ.hk i))
+  --     (hiPartner.trans hnext.symm)
+  --   have hindex := ρ.man_injective hmen
+  --   have hmove := ρ.movesDown i
+  --   rw [← hindex] at hmove
+  --   exact (Man.prefers_irrefl (ρ.man i) (ρ.woman i)) hmove
+  -- by_cases hNM : N = M
+  -- · exact Or.inl hNM
+  -- · right
+  --   apply StableMatching.ext_partnerOfMan
+  --   have hexists : ∃ i, N.matching.partnerOfMan (ρ.man i) ≠
+  --       M.matching.partnerOfMan (ρ.man i) := by
+  --     by_contra h
+  --     push_neg at h
+  --     apply hNM
+  --     apply StableMatching.ext_partnerOfMan
+  --     intro m
+  --     by_cases hm : ρ.ContainsMan M m
+  --     · obtain ⟨i, rfl⟩ := hm
+  --       exact h i
+  --     · have h₁ := hMN m
+  --       have h₂ := hNE m
+  --       rw [ρ.eliminate_partnerOfMan_of_not_contains m hm] at h₂
+  --       exact (Man.prefersOrEqual_antisymm m h₁ h₂).symm
+  --   obtain ⟨i₀, hi₀⟩ := hexists
+  --   have changed_of_ge
+  --       (start : Fin ρ.k)
+  --       (hstart : N.matching.partnerOfMan (ρ.man start) ≠
+  --         M.matching.partnerOfMan (ρ.man start))
+  --       (j : Fin ρ.k) (hij : start.val ≤ j.val) :
+  --       N.matching.partnerOfMan (ρ.man j) ≠
+  --         M.matching.partnerOfMan (ρ.man j) := by
+  --     induction hj : j.val using Nat.strong_induction_on generalizing j with
+  --     | h v ih =>
+  --         by_cases heq : start.val = j.val
+  --         · have hs : start = j := by apply Fin.ext; exact heq
+  --           simpa [hs] using hstart
+  --         · let prev : Fin ρ.k := ⟨j.val - 1, by omega⟩
+  --           have hprev := ih (j.val - 1) (by omega) prev (by
+  --             simp [prev]
+  --             omega) (by simp [prev])
+  --           have hchanged := changed_next prev hprev
+  --           have hlt : prev.val + 1 < ρ.k := by
+  --             simp [prev]
+  --             omega
+  --           have hcycle : cycleNext ρ.hk prev = j := by
+  --             apply Fin.ext
+  --             simp [cycleNext, prev, Nat.mod_eq_of_lt hlt]
+  --             omega
+  --           simpa [hcycle] using hchanged
+  --   let last : Fin ρ.k := ⟨ρ.k - 1, by
+  --     have hk := ρ.hk
+  --     omega⟩
+  --   have hlast : N.matching.partnerOfMan (ρ.man last) ≠
+  --       M.matching.partnerOfMan (ρ.man last) :=
+  --     changed_of_ge i₀ hi₀ last (by
+  --       have hi := i₀.isLt
+  --       simp [last]
+  --       omega)
+  --   have hzero := changed_next last hlast
+  --   let zero : Fin ρ.k := ⟨0, by
+  --     have hk := ρ.hk
+  --     omega⟩
+  --   have hcycleLast : cycleNext ρ.hk last = zero := by
+  --     apply Fin.ext
+  --     have hk := ρ.hk
+  --     have hlastVal : ρ.k - 1 + 1 = ρ.k := by omega
+  --     simp [cycleNext, last, zero, hlastVal]
+  --   rw [hcycleLast] at hzero
+  --   have changed_all (j : Fin ρ.k) :
+  --       N.matching.partnerOfMan (ρ.man j) ≠
+  --         M.matching.partnerOfMan (ρ.man j) := by
+  --     exact changed_of_ge zero hzero j (by simp [zero])
+  --   intro m
+  --   by_cases hm : ρ.ContainsMan M m
+  --   · obtain ⟨i, rfl⟩ := hm
+  --     rw [ρ.eliminate_partnerOfMan_man]
+  --     exact partner_eq_next i (changed_all i)
+  --   · rw [ρ.eliminate_partnerOfMan_of_not_contains m hm]
+  --     have h₁ := hMN m
+  --     have h₂ := hNE m
+  --     rw [ρ.eliminate_partnerOfMan_of_not_contains m hm] at h₂
+  --     exact Man.prefersOrEqual_antisymm m h₂ h₁
+
 end ExposedRotation
 
 end Rotation
