@@ -457,6 +457,26 @@ theorem intermediate_change_propagates
   rw [← ij_eq] at hmoves
   exact Man.prefers_irrefl (ρ.man i) (ρ.woman i) hmoves
 
+/-- 中間変化は回転中の次の変化に伝播する -/
+theorem intermediate_go_next_propagates
+    (ρ : ExposedRotation M)
+    (N : StableMatching smp)
+    (hMN : M ≤ N)
+    (hNE : N ≤ ρ.eliminate)
+    (i : Fin ρ.k)
+    (hchange : N.matching.partnerOfMan (ρ.man i) = ρ.woman (cycleNext ρ.hk i)) :
+    N.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) = ρ.woman (cycleNext ρ.hk (cycleNext ρ.hk i)) := by
+  have hneq : N.matching.partnerOfMan (ρ.man i) ≠ M.matching.partnerOfMan (ρ.man i) := by
+    rw [ρ.matched]
+    intro h
+    rw [h] at hchange
+    have hnext := ρ.movesDown i
+    rw [hchange] at hnext
+    exact Man.prefers_irrefl (ρ.man i) (ρ.woman (cycleNext ρ.hk i)) hnext
+  have hnext := ρ.intermediate_change_propagates N hMN hNE i hneq
+  have hnext_eq := ρ.intermediate_changed_eq_next N hMN hNE (cycleNext ρ.hk i) hnext
+  exact hnext_eq
+
 /-- cycleNextの反復値 -/
 theorem cycleNext_iterate_val
     (ρ : ExposedRotation M)
@@ -475,154 +495,74 @@ theorem cycleNext_iterate_val
     rw [hmod, ← ih]
     simp [cycleNext]
 
+/-- 有限回の適用で到達可能 -/
+theorem cycleNext_reachable
+    (ρ : ExposedRotation M)
+    (i j : Fin ρ.k) :
+    ∃ t : Nat, ((cycleNext ρ.hk)^[t]) i = j := by
+  -- iからjまでの距離を計算する
+  set t := (j.val + ρ.k - i.val) % ρ.k with ht
+  exists t
+  apply Fin.ext
+  rw [ρ.cycleNext_iterate_val i t, ht]
+  simp
+  have h : ↑i + (↑j + ρ.k - ↑i) = ↑j + ρ.k := by omega
+  simp [h, Nat.mod_eq_of_lt j.isLt]
+
+theorem cycleNext_closed
+    (ρ : ExposedRotation M)
+    (P : Fin ρ.k → Prop)
+    (hstep : ∀ i, P i → P (cycleNext ρ.hk i))
+    (i : Fin ρ.k)
+    (hi : P i) :
+    ∀ j, P j := by
+  intro j
+  obtain ⟨t, ht⟩ := ρ.cycleNext_reachable i j
+  rw [← ht]
+  have : ∀ t, P ((cycleNext ρ.hk)^[t] i) := by
+    intro t
+    induction t with
+    | zero => exact hi
+    | succ t ih =>
+      rw [Function.iterate_succ_apply' (cycleNext ρ.hk) t i]
+      exact hstep ((cycleNext ρ.hk)^[t] i) ih
+  exact this t
+
 /-- 回転の除去前後の間に別の安定マッチングは存在しない。 -/
 theorem covBy_eliminate
     (ρ : ExposedRotation M) :
     CovBy M ρ.eliminate := by
   apply covBy_of_eq_or_eq ρ.lt_eliminate
   intro N hMN hNE
-  by_contra intermediate
-  push_neg at intermediate
+  by_cases hNM : N = M
+  · exact Or.inl hNM
+  .
+    right
+    -- このときNとMでペアが変わる男性が存在することを示す
+    have hexists : ∃ i, N.matching.partnerOfMan (ρ.man i) ≠ M.matching.partnerOfMan (ρ.man i) := by
+      -- 対偶を示す
+      by_contra h
+      push_neg at h
+      apply hNM
+      ext m
+      by_cases hm : ρ.ContainsMan M m
+      · obtain ⟨i, rfl⟩ := hm
+        exact h i
+      · exact ρ.intermediate_partnerOfMan_of_not_contains N hMN hNE m hm
+    obtain ⟨i, hi⟩ := hexists
+    have hfirst := ρ.intermediate_changed_eq_next N hMN hNE i hi
+    have hpropagate := ρ.intermediate_go_next_propagates N hMN hNE
+    have := ρ.cycleNext_closed (fun i => N.matching.partnerOfMan (ρ.man i) = ρ.woman (cycleNext ρ.hk i)) hpropagate i hfirst
 
-
-
-
-  sorry
-  -- classical
-  -- have partner_eq_next
-  --     (i : Fin ρ.k)
-  --     (hi : N.matching.partnerOfMan (ρ.man i) ≠
-  --       M.matching.partnerOfMan (ρ.man i)) :
-  --     N.matching.partnerOfMan (ρ.man i) =
-  --       ρ.woman (cycleNext ρ.hk i) := by
-  --   have holdle := hMN (ρ.man i)
-  --   rw [ρ.matched] at holdle
-  --   have hne : ρ.woman i ≠ N.matching.partnerOfMan (ρ.man i) := by
-  --     intro h
-  --     apply hi
-  --     rw [ρ.matched, h]
-  --   have holdPrefers : ρ.woman i ≺[ρ.man i]
-  --       N.matching.partnerOfMan (ρ.man i) := by
-  --     rcases Man.prefers_total (ρ.man i) hne with h | h
-  --     · exact h
-  --     · exact (not_lt_of_ge holdle h).elim
-  --   set w := N.matching.partnerOfMan (ρ.man i) with hw
-  --   have hwomanLe : ρ.man i ≼[w] M.matching.partnerOfWoman w := by
-  --     have h := (Lattice.le_iff_women_reverse M N).mp hMN w
-  --     have hinv : N.matching.partnerOfWoman w = ρ.man i := by
-  --       rw [hw]
-  --       simp
-  --     rw [hinv] at h
-  --     exact h
-  --   have hmanNe : ρ.man i ≠ M.matching.partnerOfWoman w := by
-  --     intro h
-  --     have hwM : M.matching.partnerOfMan (ρ.man i) = w := by
-  --       rw [h]
-  --       simp
-  --     exact hi hwM.symm
-  --   have hwomanPrefers : ρ.man i ≺[w]
-  --       M.matching.partnerOfWoman w := by
-  --     rcases Woman.prefers_total w hmanNe with h | h
-  --     · exact h
-  --     · exact (not_lt_of_ge hwomanLe h).elim
-  --   have hnextLe := ρ.nextIsBest i w
-  --     (by simpa [hw] using holdPrefers) hwomanPrefers
-  --   have hwLeNext := hNE (ρ.man i)
-  --   rw [ρ.eliminate_partnerOfMan_man, ← hw] at hwLeNext
-  --   exact (Man.prefersOrEqual_antisymm (ρ.man i) hwLeNext hnextLe)
-  -- have changed_next
-  --     (i : Fin ρ.k)
-  --     (hi : N.matching.partnerOfMan (ρ.man i) ≠
-  --       M.matching.partnerOfMan (ρ.man i)) :
-  --     N.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) ≠
-  --       M.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) := by
-  --   intro hnext
-  --   have hiPartner := partner_eq_next i hi
-  --   rw [ρ.matched] at hnext
-  --   have hmen := N.matching.partnerOfMan_injective
-  --     (ρ.man i) (ρ.man (cycleNext ρ.hk i))
-  --     (hiPartner.trans hnext.symm)
-  --   have hindex := ρ.man_injective hmen
-  --   have hmove := ρ.movesDown i
-  --   rw [← hindex] at hmove
-  --   exact (Man.prefers_irrefl (ρ.man i) (ρ.woman i)) hmove
-  -- by_cases hNM : N = M
-  -- · exact Or.inl hNM
-  -- · right
-  --   apply StableMatching.ext_partnerOfMan
-  --   have hexists : ∃ i, N.matching.partnerOfMan (ρ.man i) ≠
-  --       M.matching.partnerOfMan (ρ.man i) := by
-  --     by_contra h
-  --     push_neg at h
-  --     apply hNM
-  --     apply StableMatching.ext_partnerOfMan
-  --     intro m
-  --     by_cases hm : ρ.ContainsMan M m
-  --     · obtain ⟨i, rfl⟩ := hm
-  --       exact h i
-  --     · have h₁ := hMN m
-  --       have h₂ := hNE m
-  --       rw [ρ.eliminate_partnerOfMan_of_not_contains m hm] at h₂
-  --       exact (Man.prefersOrEqual_antisymm m h₁ h₂).symm
-  --   obtain ⟨i₀, hi₀⟩ := hexists
-  --   have changed_of_ge
-  --       (start : Fin ρ.k)
-  --       (hstart : N.matching.partnerOfMan (ρ.man start) ≠
-  --         M.matching.partnerOfMan (ρ.man start))
-  --       (j : Fin ρ.k) (hij : start.val ≤ j.val) :
-  --       N.matching.partnerOfMan (ρ.man j) ≠
-  --         M.matching.partnerOfMan (ρ.man j) := by
-  --     induction hj : j.val using Nat.strong_induction_on generalizing j with
-  --     | h v ih =>
-  --         by_cases heq : start.val = j.val
-  --         · have hs : start = j := by apply Fin.ext; exact heq
-  --           simpa [hs] using hstart
-  --         · let prev : Fin ρ.k := ⟨j.val - 1, by omega⟩
-  --           have hprev := ih (j.val - 1) (by omega) prev (by
-  --             simp [prev]
-  --             omega) (by simp [prev])
-  --           have hchanged := changed_next prev hprev
-  --           have hlt : prev.val + 1 < ρ.k := by
-  --             simp [prev]
-  --             omega
-  --           have hcycle : cycleNext ρ.hk prev = j := by
-  --             apply Fin.ext
-  --             simp [cycleNext, prev, Nat.mod_eq_of_lt hlt]
-  --             omega
-  --           simpa [hcycle] using hchanged
-  --   let last : Fin ρ.k := ⟨ρ.k - 1, by
-  --     have hk := ρ.hk
-  --     omega⟩
-  --   have hlast : N.matching.partnerOfMan (ρ.man last) ≠
-  --       M.matching.partnerOfMan (ρ.man last) :=
-  --     changed_of_ge i₀ hi₀ last (by
-  --       have hi := i₀.isLt
-  --       simp [last]
-  --       omega)
-  --   have hzero := changed_next last hlast
-  --   let zero : Fin ρ.k := ⟨0, by
-  --     have hk := ρ.hk
-  --     omega⟩
-  --   have hcycleLast : cycleNext ρ.hk last = zero := by
-  --     apply Fin.ext
-  --     have hk := ρ.hk
-  --     have hlastVal : ρ.k - 1 + 1 = ρ.k := by omega
-  --     simp [cycleNext, last, zero, hlastVal]
-  --   rw [hcycleLast] at hzero
-  --   have changed_all (j : Fin ρ.k) :
-  --       N.matching.partnerOfMan (ρ.man j) ≠
-  --         M.matching.partnerOfMan (ρ.man j) := by
-  --     exact changed_of_ge zero hzero j (by simp [zero])
-  --   intro m
-  --   by_cases hm : ρ.ContainsMan M m
-  --   · obtain ⟨i, rfl⟩ := hm
-  --     rw [ρ.eliminate_partnerOfMan_man]
-  --     exact partner_eq_next i (changed_all i)
-  --   · rw [ρ.eliminate_partnerOfMan_of_not_contains m hm]
-  --     have h₁ := hMN m
-  --     have h₂ := hNE m
-  --     rw [ρ.eliminate_partnerOfMan_of_not_contains m hm] at h₂
-  --     exact Man.prefersOrEqual_antisymm m h₂ h₁
+    ext m
+    by_cases hm : ρ.ContainsMan M m
+    ·
+      obtain ⟨i, rfl⟩ := hm
+      have h := this i
+      simp [h]
+    .
+      rw [ρ.eliminate_partnerOfMan_of_not_contains m hm]
+      exact ρ.intermediate_partnerOfMan_of_not_contains N hMN hNE m hm
 
 end ExposedRotation
 
