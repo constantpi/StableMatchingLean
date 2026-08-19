@@ -435,6 +435,46 @@ theorem intermediate_changed_eq_next
 
   exact Man.prefersOrEqual_antisymm (ρ.man i) hw_le_next hbest
 
+/-- 中間変化は回転中の次の変化に伝播する -/
+theorem intermediate_change_propagates
+    (ρ : ExposedRotation M)
+    (N : StableMatching smp)
+    (hMN : M ≤ N)
+    (hNE : N ≤ ρ.eliminate)
+    (i : Fin ρ.k)
+    (hchange : N.matching.partnerOfMan (ρ.man i) ≠ M.matching.partnerOfMan (ρ.man i)) :
+    N.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) ≠ M.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) := by
+  have hi := ρ.intermediate_changed_eq_next N hMN hNE i hchange
+  intro hnext
+  set j := cycleNext ρ.hk i with hj
+  rw [ρ.matched] at hnext
+  rw [← hnext] at hi
+  have hm_eq := N.matching.partnerOfMan_injective (ρ.man i) (ρ.man j) hi
+  -- man i = man j となることが示された
+  have ij_eq := ρ.man_injective hm_eq
+  rw [hj] at ij_eq
+  have hmoves := ρ.movesDown i
+  rw [← ij_eq] at hmoves
+  exact Man.prefers_irrefl (ρ.man i) (ρ.woman i) hmoves
+
+/-- cycleNextの反復値 -/
+theorem cycleNext_iterate_val
+    (ρ : ExposedRotation M)
+    (i : Fin ρ.k)
+    (t : Nat) :
+    (((cycleNext ρ.hk)^[t]) i).val =
+      (i.val + t) % ρ.k := by
+  induction t with
+  | zero => simp [Nat.mod_eq_of_lt i.isLt]
+  | succ t ih =>
+    -- t+1回目の適用は、t回目の適用の結果にcycleNextを適用することと同じ
+    -- rw [Function.iterate_succ_apply' (cycleNext i ρ.hk) t i]
+    rw [Function.iterate_succ_apply' (cycleNext ρ.hk) t i]
+    have hmod : (i.val + (t + 1)) % ρ.k = ((i.val + t) % ρ.k + 1) % ρ.k := by rw [← Nat.add_assoc, Nat.mod_add_mod]
+    -- t回目の適用の結果をihで書き換える
+    rw [hmod, ← ih]
+    simp [cycleNext]
+
 /-- 回転の除去前後の間に別の安定マッチングは存在しない。 -/
 theorem covBy_eliminate
     (ρ : ExposedRotation M) :
