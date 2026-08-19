@@ -106,6 +106,41 @@ theorem le_iff_women_reverse
     have h_stable := M₁.isStable
     exact h_stable m w ⟨better1, better3⟩
 
+/-- M_1 < M_2 であるための必要十分条件 -/
+theorem lt_iff_le_and_not_eq_man
+    (M₁ M₂ : StableMatching smp) :
+    M₁ < M₂ ↔
+      M₁ ≤ M₂ ∧ ∃m, M₁.matching.partnerOfMan m ≺[m] M₂.matching.partnerOfMan m := by
+  constructor
+  case mp =>
+    intro h
+    constructor
+    case left =>
+      exact h.le
+    case right =>
+      have h_ne :∃ m, M₁.matching.partnerOfMan m ≠ M₂.matching.partnerOfMan m := by
+        by_contra h'
+        push_neg at h'
+        have h_eq : M₁ = M₂ := by
+          ext m
+          exact h' m
+        exact h.ne h_eq
+      obtain ⟨m, h_m⟩ := h_ne
+      exists m
+      have h_m' : M₁.matching.partnerOfMan m ≼[m] M₂.matching.partnerOfMan m := h.le m
+      apply (Man.prefers_iff_not_prefersOrEqual m (M₁.matching.partnerOfMan m) (M₂.matching.partnerOfMan m)).mpr
+      intro h_not
+      have h_eq : M₁.matching.partnerOfMan m = M₂.matching.partnerOfMan m := Man.prefersOrEqual_antisymm m h_m' h_not
+      contradiction
+  case mpr =>
+    intro h
+    have h_ne : M₁ ≠ M₂ := by
+      by_contra h_eq
+      obtain ⟨m, h_m⟩ := h.right
+      have h_eq' : M₁.matching.partnerOfMan m = M₂.matching.partnerOfMan m := by rw [h_eq]
+      simp [h_eq'] at h_m
+    exact lt_of_le_of_ne h.1 h_ne
+
 end Lattice
 end SMP
 end StableMatching
