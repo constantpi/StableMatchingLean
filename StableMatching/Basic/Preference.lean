@@ -176,6 +176,23 @@ theorem Man.prefersOrEqual_iff_not_prefers
   unfold Man.Prefers Man.PrefersOrEqual
   exact not_lt.symm
 
+theorem Man.prefers_iff_prefersOrEqual_and_ne
+    {smp : SMP n}
+    (m : smp.Man) (w₁ w₂ : smp.Woman) :
+    (w₁ ≺[m] w₂) ↔ ((w₁ ≼[m] w₂) ∧ w₁ ≠ w₂) := by
+  unfold Man.Prefers Man.PrefersOrEqual
+  constructor
+  · intro h
+    constructor
+    . omega
+    · intro h_eq
+      rw [h_eq] at h
+      omega
+  · rintro ⟨h_le, h_ne⟩
+    apply lt_of_le_of_ne h_le
+    intro h_eq
+    exact h_ne (manRank_injective m h_eq)
+
 theorem Woman.prefers_iff_not_prefersOrEqual
     {smp : SMP n}
     (w : smp.Woman) (m₁ m₂ : smp.Man) :
@@ -189,6 +206,23 @@ theorem Woman.prefersOrEqual_iff_not_prefers
     (m₁ ≼[w] m₂) ↔ ¬ (m₂ ≺[w] m₁) := by
   unfold Woman.Prefers Woman.PrefersOrEqual
   exact not_lt.symm
+
+theorem Woman.prefers_iff_prefersOrEqual_and_ne
+    {smp : SMP n}
+    (w : smp.Woman) (m₁ m₂ : smp.Man) :
+    (m₁ ≺[w] m₂) ↔ ((m₁ ≼[w] m₂) ∧ m₁ ≠ m₂) := by
+  unfold Woman.Prefers Woman.PrefersOrEqual
+  constructor
+  · intro h
+    constructor
+    . omega
+    · intro h_eq
+      rw [h_eq] at h
+      omega
+  · rintro ⟨h_le, h_ne⟩
+    apply lt_of_le_of_ne h_le
+    intro h_eq
+    exact h_ne (womanRank_injective w h_eq)
 
 @[simp]
 theorem Man.prefers_irrefl
