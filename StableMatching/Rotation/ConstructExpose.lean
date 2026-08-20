@@ -32,7 +32,10 @@ theorem exposed_rotation_candidate
     (horder : M ≤ N)
     (m : Man smp)
     (is_changed : is_changed_partner M N m)
-    : ∃ w : Woman smp, (is_exposed_rotation_candidate M m w) ∧ is_changed_partner M N (M.matching.partnerOfWoman w) := by
+    : ∃ w : Woman smp, (is_exposed_rotation_candidate M m w)
+      ∧ is_changed_partner M N (M.matching.partnerOfWoman w)
+      ∧ w ≼[m] N.matching.partnerOfMan m
+      := by
   set w1 := M.matching.partnerOfMan m with hw1
   set w2 := N.matching.partnerOfMan m with hw2
   have one_sided : is_one_sided_preferred M m w2 := by
@@ -81,35 +84,39 @@ theorem exposed_rotation_candidate
   .
     exact ⟨one_sided_w, w_is_best⟩
   .
-    unfold is_changed_partner
-    by_contra h_eq
-    simp at h_eq
-    have w_is_better_than_w2 : w ≼[m] w2 := w_is_best w2 one_sided
-    by_cases h_case : w = w2
+    constructor
     .
-      nth_rw 1 [h_case] at h_eq
-      rw [hw2] at h_eq
-      have hmw := N.matching.partnerOfMan_injective m (M.matching.partnerOfWoman w) h_eq
-      have h_eq' : w = w1 := by
-        simp [hmw] at hw1
-        exact hw1.symm
-      have := one_sided_w.1
-      nth_rw 2 [hmw] at this
-      simp at this
+      unfold is_changed_partner
+      by_contra h_eq
+      simp at h_eq
+      have w_is_better_than_w2 : w ≼[m] w2 := w_is_best w2 one_sided
+      by_cases h_case : w = w2
+      .
+        nth_rw 1 [h_case] at h_eq
+        rw [hw2] at h_eq
+        have hmw := N.matching.partnerOfMan_injective m (M.matching.partnerOfWoman w) h_eq
+        have h_eq' : w = w1 := by
+          simp [hmw] at hw1
+          exact hw1.symm
+        have := one_sided_w.1
+        nth_rw 2 [hmw] at this
+        simp at this
+      .
+        match m.prefers_total h_case with
+        | Or.inl h_w_better =>
+          apply N.isStable m w
+          constructor
+          .
+            rw [hw2] at h_w_better
+            exact h_w_better
+          .
+            nth_rw 2 [h_eq]
+            simp
+            exact one_sided_w.2
+        | Or.inr h_w2_better =>
+          exact (m.prefers_iff_not_prefersOrEqual w2 w).mp h_w2_better w_is_better_than_w2
     .
-      match m.prefers_total h_case with
-      | Or.inl h_w_better =>
-        apply N.isStable m w
-        constructor
-        .
-          rw [hw2] at h_w_better
-          exact h_w_better
-        .
-          nth_rw 2 [h_eq]
-          simp
-          exact one_sided_w.2
-      | Or.inr h_w2_better =>
-        exact (m.prefers_iff_not_prefersOrEqual w2 w).mp h_w2_better w_is_better_than_w2
+      exact w_is_best w2 one_sided
 
 /-- 回転の候補の相手を返す -/
 noncomputable def get_exposed_rotation_candidate_partner
@@ -118,7 +125,7 @@ noncomputable def get_exposed_rotation_candidate_partner
     (horder : M ≤ N)
     (m : Man smp)
     (is_changed : is_changed_partner M N m)
-    : { w : Woman smp // is_exposed_rotation_candidate M m w ∧ is_changed_partner M N (M.matching.partnerOfWoman w) } := by
+    : { w : Woman smp // is_exposed_rotation_candidate M m w ∧ is_changed_partner M N (M.matching.partnerOfWoman w) ∧ w ≼[m] N.matching.partnerOfMan m } := by
   have := exposed_rotation_candidate M N horder m is_changed
   -- 選択公理でwを選ぶ
   exact ⟨Classical.choose this, Classical.choose_spec this⟩
@@ -137,7 +144,7 @@ noncomputable def next_changed_man
     let := get_exposed_rotation_candidate_partner M N horder m.1 m.2
     let w := this.1
     let m' := M.matching.partnerOfWoman w
-    have is_changed : is_changed_partner M N m' := this.2.2
+    have is_changed : is_changed_partner M N m' := this.2.2.1
     ⟨m', is_changed⟩
 
 /-- next_changed_manは固定点を持たない-/
@@ -254,17 +261,97 @@ theorem exists_changed_cycle
     by_cases i_small : i.val + 1 < k
     .
       have : (↑i + 1) % k = i.val + 1 := Nat.mod_eq_of_lt i_small
-      simp [this, ← Function.iterate_succ_apply, Function.iterate_succ_apply']
+      simp [this, Function.iterate_succ_apply']
     .
       have : i.val + 1 = k := by omega
       simp [← Function.iterate_succ_apply' f, Nat.succ_eq_add_one, this, h_fk]
 
+/-- M < N ならばMの露出回転が存在して、N以下となる。-/
 theorem exists_exposedRotation_between
     {smp : SMP n}
     (M N : StableMatching smp)
     (hMN : M < N) :
     ∃ ρ : ExposedRotation M, ρ.eliminate ≤ N := by
-  sorry
+  obtain ⟨k, hk, man, h_inj, h_next⟩ := exists_changed_cycle M N hMN
+
+  set man' := fun i : Fin k => (man i).1 with hman
+  set woman := fun i : Fin k => M.matching.partnerOfMan (man i).1 with hwoman
+
+  have hman_injective : Function.Injective man' := by
+    intro i j h_eq
+    have : man i = man j := by
+      simp [hman] at h_eq
+      exact Subtype.ext h_eq
+    exact h_inj this
+
+  have h_matched : ∀ i, M.matching.partnerOfMan (man' i) = woman i := by simp [hman, hwoman]
+
+  have movesDown : ∀ (i : Fin k), woman i ≺[man' i] woman (cycleNext hk i) := by
+    intro i
+    simp [hman, hwoman, h_next i, next_changed_man]
+    set m := man i
+    set w := get_exposed_rotation_candidate_partner M N hMN.le m.1 m.2
+    exact w.2.1.1.1
+
+  have nextAccepts : ∀ (i : Fin k), man' i ≺[woman (cycleNext hk i)] man' (cycleNext hk i) := by
+    intro i
+    simp [hman, hwoman, h_next i, next_changed_man]
+    set m := man i
+    set w := get_exposed_rotation_candidate_partner M N hMN.le m.1 m.2
+    exact w.2.1.1.2
+
+  have nextAccepts' : ∀ (i : Fin k), man' (cyclePrev hk i) ≺[woman i] man' i := by
+    intro i
+    have := nextAccepts (cyclePrev hk i)
+    have next_prev : cycleNext hk (cyclePrev hk i) = i := by
+      simp [cycleNext, cyclePrev]
+      have : i.val + k - 1 + 1 = i.val + k := by omega
+      simp [this]
+      exact Fin.ext (Nat.mod_eq_of_lt i.isLt)
+    rw [next_prev] at this
+    exact this
+
+  have nextIsBest : ∀ (i : Fin k) (w : smp.Woman),
+      (woman i ≺[man' i] w) → (man' i ≺[w] M.matching.partnerOfWoman w) → woman (cycleNext hk i) ≼[man' i] w := by
+    intro i w h_w_better h_m_better
+    simp [man', woman, h_next i, next_changed_man]
+    set w' := get_exposed_rotation_candidate_partner M N hMN.le (man i).1 (man i).2
+    have := w'.2.1.2 w
+    simp [is_one_sided_preferred] at this
+    apply this
+    .
+      rw [show M.matching.partnerOfMan (man' i) = woman i by simp [hman,hwoman]]
+      exact h_w_better
+    .
+      simp [man'] at h_m_better
+      exact h_m_better
+
+  let ρ : ExposedRotation M := {
+    k := k,
+    hk := hk,
+    man := man',
+    woman := woman,
+    man_injective := hman_injective,
+    matched := h_matched,
+    movesDown := movesDown,
+    nextAccepts := nextAccepts',
+    nextIsBest := nextIsBest
+  }
+
+  exists ρ
+  intro m
+  simp
+  by_cases h_m : ∃ i, man' i = m
+  .
+    obtain ⟨i, h_eq⟩ := h_m
+    simp [← h_eq]
+    simp [show man' i = ρ.man i by simp [ρ]]
+    simp [ρ, woman, h_next i, next_changed_man]
+    set w := get_exposed_rotation_candidate_partner M N hMN.le (man i).1 (man i).2
+    exact w.2.2.2
+  .
+    simp [ρ.eliminatedPartner_of_not_contains m h_m]
+    exact hMN.le m
 
 
 end Rotation
