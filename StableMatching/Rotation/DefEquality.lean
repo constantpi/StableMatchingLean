@@ -110,6 +110,32 @@ theorem exists_exposedRotation
       exact this h_lt
     | inr h_eq' => rw [h_eq']
 
+/-- ExposedRotationQuotientからRotationへの写像は全射 -/
+theorem ExposedRotationQuotient.toRotation_surjective :
+    Function.Surjective
+      (ExposedRotationQuotient.toRotation (smp := smp)) := by
+  intro r
+  refine Quotient.inductionOn r ?_
+  -- apply (fun t :  (∀ (a : SMEdge smp), ∃ a_1, toRotation a_1 = ⟦a⟧)=> Quotient.inductionOn r t)
+  intro e
+
+  obtain ⟨ρ, hM, hE⟩ := exists_exposedRotation e
+
+  exists Quotient.mk (ExposedRotation.setoid smp) ρ
+  simp [ExposedRotationQuotient.toRotation, ExposedRotation.toRotation, toSMEdge, hM, hE]
+  apply Quotient.sound
+  intro m w
+  simp
+
+/-- ExposedRotationQuotientからRotationへの写像は同型 -/
+noncomputable def ExposedRotationQuotient.equivRotation :
+    ExposedRotationQuotient smp ≃ Rotation smp :=
+  Equiv.ofBijective
+    (ExposedRotationQuotient.toRotation (smp := smp))
+    ⟨
+      ExposedRotationQuotient.toRotation_injective,
+      ExposedRotationQuotient.toRotation_surjective
+    ⟩
 
 end ExposedRotation
 end Rotation
