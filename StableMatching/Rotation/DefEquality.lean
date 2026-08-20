@@ -78,6 +78,39 @@ noncomputable def ExposedRotationQuotient.toRotation :
       intro ρ₁ ρ₂ h
       exact equivalent_implies_toRotation_eq h)
 
+/-- ExposedRotationQuotientからRotationへの写像は単射 -/
+theorem ExposedRotationQuotient.toRotation_injective :
+    Function.Injective (ExposedRotationQuotient.toRotation (smp:=smp)) := by
+  intro q₁ q₂
+  apply (fun t => Quotient.inductionOn₂ q₁ q₂ t)
+  intro ρ₁ ρ₂ h
+  simp [ExposedRotationQuotient.toRotation] at h
+  apply Quotient.sound
+  exact toRotation_eq_implies_equivalent h
+
+/-- SMEdgeからExposedRotationの存在 -/
+theorem exists_exposedRotation
+    (e : SMEdge smp) :
+    ∃ ρ : ExposedRotation smp,
+      ρ.M = e.source ∧
+      ρ.eliminate = e.target := by
+  obtain ⟨ρ, ⟨h_eq, h_le⟩ ⟩ := exists_exposedRotation_between e.source e.target e.lt
+  exists ρ
+  constructor
+  · exact h_eq
+  .
+    apply le_antisymm h_le
+    have elim_gt : e.source < ρ.eliminate := by
+      rw [← h_eq]
+      exact ρ.lt_eliminate
+    have := e.covBy.2 elim_gt
+    cases lt_or_eq_of_le h_le with
+    | inl h_lt =>
+      exfalso
+      exact this h_lt
+    | inr h_eq' => rw [h_eq']
+
+
 end ExposedRotation
 end Rotation
 end SMP
