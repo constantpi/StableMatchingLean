@@ -156,6 +156,7 @@ theorem next_changed_man_no_fixed_point
   nth_rw 2 [← h_eq'] at this
   simp at this
 
+/-- changed man が空でない -/
 theorem changed_man_nonempty
     {smp : SMP n}
     (M N : StableMatching smp)
@@ -194,6 +195,69 @@ theorem exists_periodic_point_of_finite
     have hk_eq : i = k + j := by omega
     have hx' : (f^[k]) x = x := by rw [hx, ← Function.iterate_add_apply, ← hk_eq, h_eq]
     exists x, k
+
+/--
+changed man の自己写像には長さ2以上の巡回部分が存在する。
+その巡回部分を Fin k で添字付けする。
+-/
+theorem exists_changed_cycle
+    {smp : SMP n}
+    (M N : StableMatching smp)
+    (hMN : M < N) :
+    ∃ (k : Nat) (hk : 1 < k) (man : Fin k → ChangedMan M N),
+      Function.Injective man ∧
+      ∀ i, man (cycleNext hk i) = next_changed_man M N hMN.le (man i) := by
+  let : Nonempty (ChangedMan M N) := changed_man_nonempty M N hMN
+  let : Finite (ChangedMan M N) := by
+    unfold ChangedMan
+    infer_instance
+  set f := next_changed_man M N hMN.le
+  -- 周期点を得る
+  obtain ⟨x, hx⟩ := exists_periodic_point_of_finite f
+  -- その最小周期を k とする
+  set k := Function.minimalPeriod f x with hk
+  have h_fk : (f^[k]) x = x := Function.iterate_minimalPeriod
+  exists k
+  have hk_pos : 1 < k := by
+    have : k ≠ 0 := by -- 最小の周期は0ではない
+      intro k_zero
+      rw [k_zero] at hk
+      have := Function.minimalPeriod_eq_zero_iff_notMem_periodicPts.mp hk.symm
+      contradiction
+    have : k ≠ 1 := by -- 最小の周期が1なら固定点が存在することになる
+      intro h_eq
+      have : f x = x := by
+        simp [h_eq] at h_fk
+        exact h_fk
+      exact next_changed_man_no_fixed_point M N hMN.le x this
+    omega
+  exists hk_pos
+  -- fの周期点の列を作る
+  set man := fun i : Fin k => (f^[i]) x with hman
+  exists man
+  constructor
+  .
+    intro i j h_eq
+    have : (f^[i]) x = (f^[j]) x := by
+      simp [hman] at h_eq
+      exact h_eq
+    have hi : i.val < Function.minimalPeriod f x := by simp [k]
+    have hj : j.val < Function.minimalPeriod f x := by simp [k]
+    ext
+    exact (Function.iterate_eq_iterate_iff_of_lt_minimalPeriod
+        hi hj).mp this
+  .
+    intro i
+    simp [hman]
+    have h_lt : i.val < Function.minimalPeriod f x := by simp [k]
+    simp [cycleNext]
+    by_cases i_small : i.val + 1 < k
+    .
+      have : (↑i + 1) % k = i.val + 1 := Nat.mod_eq_of_lt i_small
+      simp [this, ← Function.iterate_succ_apply, Function.iterate_succ_apply']
+    .
+      have : i.val + 1 = k := by omega
+      simp [← Function.iterate_succ_apply' f, Nat.succ_eq_add_one, this, h_fk]
 
 theorem exists_exposedRotation_between
     {smp : SMP n}
