@@ -22,6 +22,22 @@ namespace ExposedRotation
 
 variable {smp : SMP n} {M : StableMatching smp}
 
+/-- cycleNextは固定点を持たない-/
+@[simp]
+theorem cycleNext_ne_self
+    (ρ : ExposedRotation smp) (i : Fin ρ.k) (h : cycleNext ρ.hk i = i) : False := by
+  simp [cycleNext] at h
+  by_cases hi : i.val + 1 < ρ.k
+  .
+    have hval := congrArg Fin.val h
+    simp [Nat.mod_eq_of_lt hi] at hval
+  .
+    have : i.val + 1 = ρ.k := by omega
+    simp [this] at h
+    simp [← h] at this
+    have hk := ρ.hk
+    omega
+
 /-- PrevのあとにNextを適用すると元の要素に戻ることを示す定理 -/
 @[simp]
 theorem cycleNext_cyclePrev
