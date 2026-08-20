@@ -271,7 +271,10 @@ theorem exists_exposedRotation_between
     {smp : SMP n}
     (M N : StableMatching smp)
     (hMN : M < N) :
-    ∃ ρ : ExposedRotation M, ρ.eliminate ≤ N := by
+    -- ∃ ρ : ExposedRotation smp, ρ.eliminate ≤ N := by
+    ∃ ρ : ExposedRotation smp,
+      ρ.M = M ∧
+      ρ.eliminate ≤ N := by
   obtain ⟨k, hk, man, h_inj, h_next⟩ := exists_changed_cycle M N hMN
 
   set man' := fun i : Fin k => (man i).1 with hman
@@ -326,7 +329,8 @@ theorem exists_exposedRotation_between
       simp [man'] at h_m_better
       exact h_m_better
 
-  let ρ : ExposedRotation M := {
+  let ρ : ExposedRotation smp := {
+    M := M,
     k := k,
     hk := hk,
     man := man',
@@ -339,19 +343,23 @@ theorem exists_exposedRotation_between
   }
 
   exists ρ
-  intro m
-  simp
-  by_cases h_m : ∃ i, man' i = m
+
+  constructor
+  . rfl
   .
-    obtain ⟨i, h_eq⟩ := h_m
-    simp [← h_eq]
-    simp [show man' i = ρ.man i by simp [ρ]]
-    simp [ρ, woman, h_next i, next_changed_man]
-    set w := get_exposed_rotation_candidate_partner M N hMN.le (man i).1 (man i).2
-    exact w.2.2.2
-  .
-    simp [ρ.eliminatedPartner_of_not_contains m h_m]
-    exact hMN.le m
+    intro m
+    simp
+    by_cases h_m : ∃ i, man' i = m
+    .
+      obtain ⟨i, h_eq⟩ := h_m
+      simp [← h_eq]
+      simp [show man' i = ρ.man i by simp [ρ]]
+      simp [ρ, woman, h_next i, next_changed_man]
+      set w := get_exposed_rotation_candidate_partner M N hMN.le (man i).1 (man i).2
+      exact w.2.2.2
+    .
+      simp [ρ.eliminatedPartner_of_not_contains m h_m]
+      exact hMN.le m
 
 
 end Rotation

@@ -12,8 +12,8 @@ def cyclePrev {k : Nat} (hk : 1 < k) (i : Fin k) : Fin k :=
   have h1 : 0 < k := by omega
   ⟨(i.val + k - 1) % k, Nat.mod_lt (i.val + k - 1) h1⟩
 
-structure ExposedRotation
-    (M : StableMatching smp) where
+structure ExposedRotation (smp : SMP n) where
+  M : StableMatching smp
   k : Nat
   hk : 1 < k
   man : Fin k → smp.Man
