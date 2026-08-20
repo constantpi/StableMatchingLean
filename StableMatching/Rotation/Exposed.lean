@@ -25,10 +25,13 @@ structure ExposedRotation (smp : SMP n) where
   nextIsBest : ∀ i w,
     (woman i ≺[man i] w) → (man i ≺[w] M.matching.partnerOfWoman w) → woman (cycleNext hk i) ≼[man i] w
 
+def IsRotationPair (ρ : ExposedRotation smp) (m : smp.Man) (w : smp.Woman) : Prop :=
+  ∃ i, m = ρ.man i ∧ w = ρ.woman i
+
 def ExposedRotation.Equivalent
     (ρ₁ ρ₂ : ExposedRotation smp) : Prop :=
   ∀ m w,
-    (∃ i, m = ρ₁.man i ∧ w = ρ₁.woman i) ↔ (∃ i, m = ρ₂.man i ∧ w = ρ₂.woman i)
+    IsRotationPair ρ₁ m w ↔ IsRotationPair ρ₂ m w
 
 theorem ExposedRotation.Equivalent.refl
     (ρ : ExposedRotation smp) :
