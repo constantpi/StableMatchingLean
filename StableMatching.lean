@@ -5,4 +5,5 @@
 import StableMatching.Algorithm.GaleShapley
 import StableMatching.Examples.Basic
 import StableMatching.Lattice.Finite
+import StableMatching.Lattice.PartnerThreshold
 import StableMatching.Rotation.DefEquality
