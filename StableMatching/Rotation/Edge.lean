@@ -100,6 +100,15 @@ theorem SMEdge.existsUnique_supIrred (e : SMEdge smp) :
     exact inf_eq_left.mp ((ha.1.2 hDecomp).resolve_left hInfNe)
   exact le_antisymm (le_of_props k j kProps hjProps) (le_of_props j k hjProps kProps)
 
+/-- 被覆辺の終点以下で始点以下でない唯一の `SupIrred` 元。 -/
+noncomputable def SMEdge.supIrred (e : SMEdge smp) : StableMatching smp :=
+  Classical.choose e.existsUnique_supIrred.exists
+
+/-- 被覆辺に対応する元は `SupIrred` で、終点以下かつ始点以下ではない。 -/
+theorem SMEdge.supIrred_spec (e : SMEdge smp) :
+    SupIrred e.supIrred ∧ e.supIrred ≤ e.target ∧ ¬ e.supIrred ≤ e.source :=
+  Classical.choose_spec e.existsUnique_supIrred.exists
+
 end Rotation
 end SMP
 end StableMatching
