@@ -1,4 +1,4 @@
-import StableMatching.Lattice.Lattice
+import StableMatching.Lattice.PartnerThreshold
 
 namespace StableMatching
 namespace SMP
@@ -49,6 +49,56 @@ theorem SMEdge.not_exists_intermediate_stable_partner
   · intro h
     rw [← h, hQ] at htarget
     exact m.prefers_irrefl w htarget
+
+/-- 被覆辺の終点以下で始点以下でない `SupIrred` 元は一意に存在する。 -/
+theorem SMEdge.existsUnique_supIrred (e : SMEdge smp) :
+    ∃! j : StableMatching smp, SupIrred j ∧ j ≤ e.target ∧ ¬ j ≤ e.source := by
+
+  -- まず、被覆関係からMとNを取り出す
+  set M := e.source
+  set N := e.target
+  have hmn : M < N := e.lt
+  -- M < Nより、ある男性mが存在してM(m) < N(m)となる。lt_iff_le_and_not_eq_manを使う
+  obtain ⟨m, h_m⟩ := ((Lattice.lt_iff_le_and_not_eq_man M N).mp hmn).2
+  -- その男性mに対して、partnerThresholdを使う
+  set w := M.matching.partnerOfMan m with hw
+  have hWorse : ∃ P : StableMatching smp, w ≺[m] P.matching.partnerOfMan m := by
+    exists N
+  set j := Lattice.partnerThreshold m w with hj
+  have hjProps : SupIrred j ∧ j ≤ N ∧ ¬ j ≤ M := by
+    -- ここに、今書いている j の性質の証明を置く
+    constructor
+    . exact Lattice.supIrred_partnerThreshold m w (by exists M) (by exists N)
+    . constructor
+      . exact (Lattice.partnerThreshold_le_iff m w hWorse N).mpr h_m
+      .
+        rw [hj]
+        intro h
+        have := (Lattice.partnerThreshold_le_iff m w hWorse M).mp h
+        rw [hw] at this
+        exact m.prefers_irrefl w this
+  refine ⟨j, hjProps, ?_⟩
+
+  intro k kProps
+  have le_of_props (a b : StableMatching smp)
+      (ha : SupIrred a ∧ a ≤ N ∧ ¬ a ≤ M)
+      (hb : SupIrred b ∧ b ≤ N ∧ ¬ b ≤ M) : a ≤ b := by
+    have hLt : M < M ⊔ b := by
+      apply lt_of_le_of_ne le_sup_left
+      intro h
+      exact hb.2.2 (sup_eq_left.mp h.symm)
+    -- 被覆関係から M ⊔ b = N が従う。
+    have hSup : M ⊔ b = N := by
+      have hLe : M ⊔ b ≤ N := sup_le e.le hb.2.1
+      exact (lt_or_eq_of_le hLe).resolve_left (e.covBy.2 hLt)
+    have hDecomp : (a ⊓ M) ⊔ (a ⊓ b) = a := by
+      rw [← inf_sup_left, hSup]
+      exact inf_eq_left.mpr ha.2.1
+    have hInfNe : a ⊓ M ≠ a := by
+      intro h
+      exact ha.2.2 (inf_eq_left.mp h)
+    exact inf_eq_left.mp ((ha.1.2 hDecomp).resolve_left hInfNe)
+  exact le_antisymm (le_of_props k j kProps hjProps) (le_of_props j k hjProps kProps)
 
 end Rotation
 end SMP
