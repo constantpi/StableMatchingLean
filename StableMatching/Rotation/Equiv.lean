@@ -60,6 +60,27 @@ theorem SMEdge.supIrred_eq_partnerThreshold
     rw [hSource] at hPrefSource
     exact m.prefers_irrefl w hPrefSource
 
+/-- 安定相手の境界元が被覆辺に対応する元と等しければ、そのペアは変更前ペアである。 -/
+theorem SMEdge.isChangedPair_of_supIrred_eq_partnerThreshold
+    (e : SMEdge smp) {m : smp.Man} {w : smp.Woman}
+    (hStable : ∃ P : StableMatching smp, P.matching.partnerOfMan m = w)
+    (hWorse : ∃ P : StableMatching smp, w ≺[m] P.matching.partnerOfMan m)
+    (h : e.supIrred = Lattice.partnerThreshold m w) : e.IsChangedPair m w := by
+  obtain ⟨hLeTarget, hNotLeSource⟩ := (e.supIrred_spec).2
+  rw [h] at hLeTarget hNotLeSource
+  have htarget := (Lattice.partnerThreshold_le_iff m w hWorse e.target).mp hLeTarget
+  have hsource : e.source.matching.partnerOfMan m ≼[m] w := by
+    apply (m.prefersOrEqual_iff_not_prefers _ _).mpr
+    intro hlt
+    exact hNotLeSource ((Lattice.partnerThreshold_le_iff m w hWorse e.source).mpr hlt)
+  constructor
+  · by_contra hne
+    have hlt := (m.prefers_iff_prefersOrEqual_and_ne _ _).mpr ⟨hsource, hne⟩
+    exact e.not_exists_intermediate_stable_partner m w hlt htarget hStable
+  · intro heq
+    rw [heq] at htarget
+    exact m.prefers_irrefl w htarget
+
 /-- 変更前ペアの集合が一致する被覆辺には、同じ `SupIrred` 元が対応する。 -/
 theorem SMEdge.supIrred_eq_of_equivalent
     {e₁ e₂ : SMEdge smp} (h : e₁.Equivalent e₂) : e₁.supIrred = e₂.supIrred := by
@@ -96,7 +117,52 @@ theorem SMEdge.toRotation_eq_iff
     e₁.toRotation = e₂.toRotation ↔ e₁.Equivalent e₂ := by
   apply Quotient.eq
 
-end Rotation
+/-- 回転を、代表する被覆辺に対応する `SupIrred` 元に写す。 -/
+noncomputable def toSupIrred : Rotation smp → {j : StableMatching smp // SupIrred j} :=
+  Quotient.lift
+    (fun e : SMEdge smp => ⟨e.supIrred, e.supIrred_spec.1⟩)
+    (fun _ _ h => Subtype.ext (SMEdge.supIrred_eq_of_equivalent h))
 
+/-- 回転から `SupIrred` 元への写像は単射である。 -/
+theorem toSupIrred_injective {smp : SMP n} :
+    Function.Injective (toSupIrred (smp := smp)) := by
+  intro r₁ r₂
+  refine Quotient.inductionOn₂ r₁ r₂ ?_
+  intro e₁ e₂ h
+  simp [toSupIrred] at h
+  change e₁.toRotation = e₂.toRotation
+  apply (SMEdge.toRotation_eq_iff e₁ e₂).mpr
+  unfold SMEdge.Equivalent
+  intro m w
+  constructor
+  . intro hchange
+    have := SMEdge.supIrred_eq_partnerThreshold e₁ hchange
+    rw [h] at this
+    have hstable : ∃ P : StableMatching smp, P.matching.partnerOfMan m = w := by
+      exists e₁.source
+      exact hchange.1
+    have hWorse : ∃ P : StableMatching smp, w ≺[m] P.matching.partnerOfMan m := by
+      exists e₁.target
+      have hstneq := hchange.2
+      rw [← hchange.1] at *
+      have hstle:= e₁.le m
+      exact (m.prefers_iff_prefersOrEqual_and_ne _ _).mpr ⟨hstle, hstneq.symm⟩
+    exact SMEdge.isChangedPair_of_supIrred_eq_partnerThreshold e₂ hstable hWorse this
+  .
+    intro hchange
+    have := SMEdge.supIrred_eq_partnerThreshold e₂ hchange
+    rw [← h] at this
+    have hstable : ∃ P : StableMatching smp, P.matching.partnerOfMan m = w := by
+      exists e₂.source
+      exact hchange.1
+    have hWorse : ∃ P : StableMatching smp, w ≺[m] P.matching.partnerOfMan m := by
+      exists e₂.target
+      have hstneq := hchange.2
+      rw [← hchange.1] at *
+      have hstle:= e₂.le m
+      exact (m.prefers_iff_prefersOrEqual_and_ne _ _).mpr ⟨hstle, hstneq.symm⟩
+    exact SMEdge.isChangedPair_of_supIrred_eq_partnerThreshold e₁ hstable hWorse this
+
+end Rotation
 end SMP
 end StableMatching
