@@ -206,6 +206,16 @@ theorem toSupIrred_injective {smp : SMP n} :
       exact (m.prefers_iff_prefersOrEqual_and_ne _ _).mpr ⟨hstle, hstneq.symm⟩
     exact SMEdge.isChangedPair_of_supIrred_eq_partnerThreshold e₁ hstable hWorse this
 
+/-- 同じ変更前ペアを持つ二つの回転は等しい。 -/
+theorem eq_of_isChangedPair {smp : SMP n}
+    {ρ₁ ρ₂ : Rotation smp} (m : smp.Man) (w : smp.Woman)
+    (h₁ : ρ₁.IsChangedPair m w) (h₂ : ρ₂.IsChangedPair m w) :
+    ρ₁ = ρ₂ := by
+  apply toSupIrred_injective
+  apply Subtype.ext
+  exact (toSupIrred_val_eq_partnerThreshold h₁).trans
+    (toSupIrred_val_eq_partnerThreshold h₂).symm
+
 /-- 回転から `SupIrred` 元への写像は全射である。 -/
 theorem toSupIrred_surjective {smp : SMP n} :
     Function.Surjective (toSupIrred (smp := smp)) := by
