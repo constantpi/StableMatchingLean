@@ -320,6 +320,11 @@ noncomputable def equivSupIrred {smp : SMP n} :
   Equiv.ofBijective (toSupIrred (smp := smp))
     ⟨toSupIrred_injective, toSupIrred_surjective⟩
 
+/-- 安定結婚問題の回転の集合は有限である。 -/
+instance rotationFinite {smp : SMP n} : Finite (Rotation smp) :=
+  Finite.of_injective (equivSupIrred (smp := smp))
+    (equivSupIrred (smp := smp)).injective
+
 end Rotation
 end SMP
 end StableMatching

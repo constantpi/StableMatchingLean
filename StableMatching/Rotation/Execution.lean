@@ -146,6 +146,36 @@ theorem IsEliminationSequence.linearExtension {smp : SMP n}
         intro ρ hInTail hLe
         exact ((hTailMem ρ).mp hInTail).2 (τ.eliminate.toRotationLowerSet.lower hLe hHead.1)
 
+/-- 二つの下方閉集合の差を列挙する回転の線形拡張が存在する。 -/
+theorem exists_linearExtension {smp : SMP n}
+    (D D' : LowerSet (Rotation smp)) :
+    ∃ rs : List (Rotation smp),
+      (∀ ρ : Rotation smp, ρ ∈ rs ↔ ρ ∈ D' ∧ ρ ∉ D) ∧
+      rs.Pairwise (fun ρ σ => ¬ σ ≤ ρ) := by
+  classical
+  let Remaining := {ρ : Rotation smp // ρ ∈ D' ∧ ρ ∉ D}
+  letI : Fintype (LinearExtension Remaining) := Fintype.ofFinite Remaining
+  let sorted : List (LinearExtension Remaining) :=
+    (Finset.univ : Finset (LinearExtension Remaining)).sort (· ≤ ·)
+  let rotationOf (a : LinearExtension Remaining) : Rotation smp :=
+    (show Remaining from a).1
+  refine ⟨sorted.map rotationOf, ?_, ?_⟩
+  · intro ρ
+    constructor
+    · intro hρ
+      obtain ⟨a, _, rfl⟩ := List.mem_map.mp hρ
+      exact (show Remaining from a).2
+    · intro hρ
+      let a : LinearExtension Remaining := (⟨ρ, hρ⟩ : Remaining)
+      have ha : a ∈ sorted := by simp [sorted]
+      exact List.mem_map.mpr ⟨a, ha, rfl⟩
+  · have hSorted : sorted.Pairwise (· < ·) := Finset.sort_sorted_lt _
+    apply List.pairwise_map.mpr
+    apply hSorted.imp
+    intro a b hab hba
+    have hba' : (show Remaining from b) ≤ (show Remaining from a) := hba
+    exact (not_le_of_gt hab) ((toLinearExtension (α := Remaining)).monotone hba')
+
 end Rotation
 end SMP
 end StableMatching
