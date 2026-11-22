@@ -179,6 +179,48 @@ theorem IsEliminationSequence.linearExtension {smp : SMP n}
         intro ρ hInTail hLe
         exact ((hTailMem ρ).mp hInTail).2 (τ.eliminate.toRotationLowerSet.lower hLe hHead.1)
 
+/-- 合法な回転除去列の始点は終点以下である。 -/
+theorem IsEliminationSequence.le {smp : SMP n}
+    {M N : StableMatching smp} {rs : List (Rotation smp)}
+    (h : IsEliminationSequence M rs N) :
+    M ≤ N :=
+  (stableMatchingOrderIsoLowerSet (smp := smp)).le_iff_le.mp h.linearExtension.1
+
+/-- 合法な回転除去の取り消し列の終点は始点以下である。 -/
+theorem IsUndoSequence.le {smp : SMP n}
+    {M N : StableMatching smp} {rs : List (Rotation smp)}
+    (h : IsUndoSequence M rs N) :
+    N ≤ M := by
+  induction h with
+  | nil _ => exact le_rfl
+  | cons τ _ ih => exact ih.trans τ.covBy_eliminate.le
+
+/-- 回転除去で相手が変わった男性は、その後の除去で元の相手に戻らない。 -/
+theorem IsEliminationSequence.partnerOfMan_ne_of_changed {smp : SMP n}
+    {M N P : StableMatching smp} {rs ts : List (Rotation smp)}
+    (h₁ : IsEliminationSequence M rs N)
+    (h₂ : IsEliminationSequence N ts P) (m : smp.Man)
+    (hChanged : M.matching.partnerOfMan m ≠ N.matching.partnerOfMan m) :
+    M.matching.partnerOfMan m ≠ P.matching.partnerOfMan m := by
+  intro hReturn
+  apply hChanged
+  apply m.prefersOrEqual_antisymm
+  · exact h₁.le m
+  · simpa only [← hReturn] using h₂.le m
+
+/-- 回転除去の取り消しで相手が変わった男性は、その後の取り消しで元の相手に戻らない。 -/
+theorem IsUndoSequence.partnerOfMan_ne_of_changed {smp : SMP n}
+    {M N P : StableMatching smp} {rs ts : List (Rotation smp)}
+    (h₁ : IsUndoSequence M rs N)
+    (h₂ : IsUndoSequence N ts P) (m : smp.Man)
+    (hChanged : M.matching.partnerOfMan m ≠ N.matching.partnerOfMan m) :
+    M.matching.partnerOfMan m ≠ P.matching.partnerOfMan m := by
+  intro hReturn
+  apply hChanged
+  apply m.prefersOrEqual_antisymm
+  · simpa only [← hReturn] using h₂.le m
+  · exact h₁.le m
+
 /-- 二つの下方閉集合の差を列挙する回転の線形拡張が存在する。 -/
 theorem exists_linearExtension {smp : SMP n}
     (D D' : LowerSet (Rotation smp)) :
