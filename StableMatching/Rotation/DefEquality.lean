@@ -69,25 +69,6 @@ theorem toRotation_eq_iff
     ρ₁.toRotation = ρ₂.toRotation ↔ ρ₁.Equivalent ρ₂ :=
   ⟨toRotation_eq_implies_equivalent, equivalent_implies_toRotation_eq⟩
 
-/-- ExposedRotationの商空間からRotationへの写像 -/
-noncomputable def ExposedRotationQuotient.toRotation :
-    ExposedRotationQuotient smp → Rotation smp :=
-  Quotient.lift
-    ExposedRotation.toRotation
-    (by
-      intro ρ₁ ρ₂ h
-      exact equivalent_implies_toRotation_eq h)
-
-/-- ExposedRotationQuotientからRotationへの写像は単射 -/
-theorem ExposedRotationQuotient.toRotation_injective :
-    Function.Injective (ExposedRotationQuotient.toRotation (smp:=smp)) := by
-  intro q₁ q₂
-  apply (fun t => Quotient.inductionOn₂ q₁ q₂ t)
-  intro ρ₁ ρ₂ h
-  simp [ExposedRotationQuotient.toRotation] at h
-  apply Quotient.sound
-  exact toRotation_eq_implies_equivalent h
-
 /-- SMEdgeからExposedRotationの存在 -/
 theorem exists_exposedRotation
     (e : SMEdge smp) :
@@ -110,8 +91,31 @@ theorem exists_exposedRotation
       exact this h_lt
     | inr h_eq' => rw [h_eq']
 
+end ExposedRotation
+
+namespace ExposedRotationQuotient
+
+/-- ExposedRotationの商空間からRotationへの写像 -/
+noncomputable def toRotation :
+    ExposedRotationQuotient smp → Rotation smp :=
+  Quotient.lift
+    ExposedRotation.toRotation
+    (by
+      intro ρ₁ ρ₂ h
+      exact ExposedRotation.equivalent_implies_toRotation_eq h)
+
+/-- ExposedRotationQuotientからRotationへの写像は単射 -/
+theorem toRotation_injective :
+    Function.Injective (ExposedRotationQuotient.toRotation (smp:=smp)) := by
+  intro q₁ q₂
+  apply (fun t => Quotient.inductionOn₂ q₁ q₂ t)
+  intro ρ₁ ρ₂ h
+  simp [ExposedRotationQuotient.toRotation] at h
+  apply Quotient.sound
+  exact ExposedRotation.toRotation_eq_implies_equivalent h
+
 /-- ExposedRotationQuotientからRotationへの写像は全射 -/
-theorem ExposedRotationQuotient.toRotation_surjective :
+theorem toRotation_surjective :
     Function.Surjective
       (ExposedRotationQuotient.toRotation (smp := smp)) := by
   intro r
@@ -119,16 +123,16 @@ theorem ExposedRotationQuotient.toRotation_surjective :
   -- apply (fun t :  (∀ (a : SMEdge smp), ∃ a_1, toRotation a_1 = ⟦a⟧)=> Quotient.inductionOn r t)
   intro e
 
-  obtain ⟨ρ, hM, hE⟩ := exists_exposedRotation e
+  obtain ⟨ρ, hM, hE⟩ := ExposedRotation.exists_exposedRotation e
 
   exists Quotient.mk (ExposedRotation.setoid smp) ρ
-  simp [ExposedRotationQuotient.toRotation, ExposedRotation.toRotation, toSMEdge, hM, hE]
+  simp [ExposedRotationQuotient.toRotation, ExposedRotation.toRotation, ExposedRotation.toSMEdge, hM, hE]
   apply Quotient.sound
   intro m w
   simp
 
 /-- ExposedRotationQuotientからRotationへの写像は同型 -/
-noncomputable def ExposedRotationQuotient.equivRotation :
+noncomputable def equivRotation :
     ExposedRotationQuotient smp ≃ Rotation smp :=
   Equiv.ofBijective
     (ExposedRotationQuotient.toRotation (smp := smp))
@@ -137,7 +141,7 @@ noncomputable def ExposedRotationQuotient.equivRotation :
       ExposedRotationQuotient.toRotation_surjective
     ⟩
 
-end ExposedRotation
+end ExposedRotationQuotient
 end Rotation
 end SMP
 end StableMatching
