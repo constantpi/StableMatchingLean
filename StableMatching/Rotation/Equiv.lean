@@ -202,6 +202,12 @@ theorem toSupIrred_surjective {smp : SMP n} :
       exact not_le_of_gt hM_lt_j.lt
   exact he_uniq.unique he_sqec this
 
+/-- 回転と安定マッチングの `SupIrred` 元の間の全単射。 -/
+noncomputable def equivSupIrred {smp : SMP n} :
+    Rotation smp ≃ {j : StableMatching smp // SupIrred j} :=
+  Equiv.ofBijective (toSupIrred (smp := smp))
+    ⟨toSupIrred_injective, toSupIrred_surjective⟩
+
 end Rotation
 end SMP
 end StableMatching
