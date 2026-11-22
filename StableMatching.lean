@@ -7,3 +7,4 @@ import StableMatching.Examples.Basic
 import StableMatching.Lattice.Finite
 import StableMatching.Lattice.PartnerThreshold
 import StableMatching.Rotation.DefEquality
+import StableMatching.Rotation.Order
