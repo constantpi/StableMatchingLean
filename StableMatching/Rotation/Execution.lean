@@ -5,6 +5,16 @@ namespace StableMatching
 namespace SMP
 namespace Rotation
 
+/-- `rs` が安定マッチング `M` から `N` への合法な回転除去列であること。 -/
+inductive IsEliminationSequence {smp : SMP n} :
+    StableMatching smp → List (Rotation smp) → StableMatching smp → Prop where
+  | nil (M : StableMatching smp) :
+      IsEliminationSequence M [] M
+  | cons {rs : List (Rotation smp)} {N : StableMatching smp}
+      (τ : ExposedRotation smp)
+      (hTail : IsEliminationSequence τ.eliminate rs N) :
+      IsEliminationSequence τ.M (τ.toRotation :: rs) N
+
 /-- 下方閉集合への回転の1要素追加は、対応する露出回転の除去として実現できる。 -/
 theorem ExposedRotation.exists_of_lowerSet_insert {smp : SMP n}
     (D D' : LowerSet (Rotation smp)) (ρ : Rotation smp)
