@@ -67,6 +67,32 @@ theorem SMEdge.toRotationLowerSet_target_diff_source {smp : SMP n} (e : SMEdge s
   · rintro rfl
     exact e.supIrred_spec.2
 
+/-- 回転を1つ加えた下方閉集合への遷移を表す被覆辺が存在する。 -/
+theorem SMEdge.exists_of_lowerSet_insert {smp : SMP n}
+    (D D' : LowerSet (Rotation smp)) (ρ : Rotation smp)
+    (hρ : ρ ∉ D) (hInsert : (D' : Set (Rotation smp)) = insert ρ (D : Set (Rotation smp))) :
+    ∃ e : SMEdge smp,
+      e.source = StableMatching.ofRotationLowerSet D ∧
+      e.target = StableMatching.ofRotationLowerSet D' ∧ e.toRotation = ρ := by
+  have hSetCover : (D : Set (Rotation smp)) ⋖ (D' : Set (Rotation smp)) := by
+    rw [hInsert]
+    exact Set.covBy_insert hρ
+  have hCover : D ⋖ D' := by
+    refine ⟨hSetCover.lt, ?_⟩
+    intro C hDC hCD'
+    exact hSetCover.2 (c := (C : Set (Rotation smp))) hDC hCD'
+  let e : SMEdge smp :=
+    { source := StableMatching.ofRotationLowerSet D
+      target := StableMatching.ofRotationLowerSet D'
+      covBy := (stableMatchingOrderIsoLowerSet (smp := smp)).symm.map_covBy.mpr hCover }
+  refine ⟨e, rfl, rfl, ?_⟩
+  apply Set.singleton_injective
+  calc
+    ({e.toRotation} : Set (Rotation smp)) = (D' : Set (Rotation smp)) \ (D : Set (Rotation smp)) := by
+      simpa only [e, StableMatching.toRotationLowerSet_ofRotationLowerSet] using
+        e.toRotationLowerSet_target_diff_source.symm
+    _ = {ρ} := by rw [hInsert, Set.insert_diff_eq_singleton hρ]
+
 end Rotation
 end SMP
 end StableMatching
