@@ -43,5 +43,10 @@ theorem exists_stable_matching (smp : SMP n) : Nonempty (StableMatching smp) :=
   ⟨GaleShapley smp⟩
 
 end GSState
+
+/-- 男性提案型の Gale–Shapley アルゴリズムで安定マッチングを求める。 -/
+def galeShapley (smp : SMP n) : StableMatching smp :=
+  GSState.GaleShapley smp
+
 end SMP
 end StableMatching
