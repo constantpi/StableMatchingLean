@@ -12,6 +12,12 @@ def SMEdge.IsChangedPair
   e.source.matching.partnerOfMan m = w ∧
   e.target.matching.partnerOfMan m ≠ w
 
+/-- ペア `(m, w)` が被覆辺の変更後ペアであること。 -/
+def SMEdge.IsNewPair {smp : SMP n}
+    (e : SMEdge smp) (m : smp.Man) (w : smp.Woman) : Prop :=
+  e.target.matching.partnerOfMan m = w ∧
+  e.source.matching.partnerOfMan m ≠ w
+
 def SMEdge.Equivalent
     (e₁ e₂ : SMEdge smp) : Prop :=
   ∀ m w,
@@ -38,6 +44,45 @@ theorem SMEdge.equivalent_trans
     e₁.Equivalent e₃ := by
   intro m w₁
   exact Iff.trans (h₁₂ m w₁) (h₂₃ m w₁)
+
+/-- 同じ変更前ペアを持つ被覆辺では、その男性の変更後の相手が一致する。 -/
+theorem SMEdge.target_partnerOfMan_eq_of_isChangedPair {smp : SMP n}
+    {e₁ e₂ : SMEdge smp} (m : smp.Man) (w : smp.Woman)
+    (h₁ : e₁.IsChangedPair m w) (h₂ : e₂.IsChangedPair m w) :
+    e₁.target.matching.partnerOfMan m = e₂.target.matching.partnerOfMan m := by
+  have not_target_lt (a b : SMEdge smp) (ha : a.IsChangedPair m w)
+      (hb : b.IsChangedPair m w) :
+      ¬ (a.target.matching.partnerOfMan m ≺[m] b.target.matching.partnerOfMan m) := by
+    intro hLt
+    have hFromSource : b.source.matching.partnerOfMan m ≺[m] a.target.matching.partnerOfMan m := by
+      have hLe := a.le m
+      rw [ha.1] at hLe
+      rw [hb.1]
+      exact (m.prefers_iff_prefersOrEqual_and_ne _ _).mpr ⟨hLe, ha.2.symm⟩
+    exact b.not_exists_intermediate_stable_partner m _ hFromSource hLt ⟨a.target, rfl⟩
+  by_contra hNe
+  rcases m.prefers_total hNe with hLt | hLt
+  · exact not_target_lt e₁ e₂ h₁ h₂ hLt
+  · exact not_target_lt e₂ e₁ h₂ h₁ hLt
+
+/-- 同値な被覆辺は同じ変更後ペアを持つ。 -/
+theorem SMEdge.isNewPair_iff_of_equivalent {smp : SMP n}
+    {e₁ e₂ : SMEdge smp} (h : e₁.Equivalent e₂)
+    (m : smp.Man) (w : smp.Woman) :
+    e₁.IsNewPair m w ↔ e₂.IsNewPair m w := by
+  have transfer {a b : SMEdge smp} (hab : a.Equivalent b) :
+      a.IsNewPair m w → b.IsNewPair m w := by
+    rintro ⟨hTarget, hSource⟩
+    have hOld : a.IsChangedPair m (a.source.matching.partnerOfMan m) := by
+      refine ⟨rfl, ?_⟩
+      rw [hTarget]
+      exact hSource.symm
+    have hOld' := (hab m _).mp hOld
+    have hTargets := SMEdge.target_partnerOfMan_eq_of_isChangedPair
+      m (a.source.matching.partnerOfMan m) hOld hOld'
+    refine ⟨hTargets.symm.trans hTarget, ?_⟩
+    simpa only [hOld'.1] using hSource
+  exact ⟨transfer h, transfer (SMEdge.equivalent_symm h)⟩
 
 /-- 被覆辺に対応する元は、その変更前ペアの境界元に等しい。 -/
 theorem SMEdge.supIrred_eq_partnerThreshold
@@ -124,6 +169,13 @@ def IsChangedPair {smp : SMP n}
     (fun e : SMEdge smp => e.IsChangedPair m w)
     (fun _ _ h => propext (h m w))
 
+/-- ペア `(m, w)` が回転の変更後ペアであること。 -/
+def IsNewPair {smp : SMP n}
+    (ρ : Rotation smp) (m : smp.Man) (w : smp.Woman) : Prop :=
+  Quotient.liftOn ρ
+    (fun e : SMEdge smp => e.IsNewPair m w)
+    (fun _ _ h => propext (SMEdge.isNewPair_iff_of_equivalent h m w))
+
 /-- 男性 `m` が回転 `ρ` に参加すること。 -/
 def ContainsMan {smp : SMP n} (ρ : Rotation smp) (m : smp.Man) : Prop :=
   ∃ w : smp.Woman, ρ.IsChangedPair m w
@@ -133,6 +185,13 @@ def ContainsMan {smp : SMP n} (ρ : Rotation smp) (m : smp.Man) : Prop :=
 theorem SMEdge.toRotation_isChangedPair_iff {smp : SMP n}
     (e : SMEdge smp) (m : smp.Man) (w : smp.Woman) :
     e.toRotation.IsChangedPair m w ↔ e.IsChangedPair m w :=
+  Iff.rfl
+
+/-- 代表辺とその回転は同じ変更後ペアを持つ。 -/
+@[simp]
+theorem SMEdge.toRotation_isNewPair_iff {smp : SMP n}
+    (e : SMEdge smp) (m : smp.Man) (w : smp.Woman) :
+    e.toRotation.IsNewPair m w ↔ e.IsNewPair m w :=
   Iff.rfl
 
 /-- 代表辺の両端で相手が変わる男性は、その回転に参加する。 -/
