@@ -221,6 +221,50 @@ theorem IsUndoSequence.partnerOfMan_ne_of_changed {smp : SMP n}
   · simpa only [← hReturn] using h₂.le m
   · exact h₁.le m
 
+/-- 男性集合の内部だけで回転を除去すると、その集合の相手全体は保存される。 -/
+theorem IsEliminationSequence.image_partnerOfMan_eq {smp : SMP n}
+    {M N : StableMatching smp} {rs : List (Rotation smp)}
+    (h : IsEliminationSequence M rs N) (S : Set smp.Man)
+    (hS : ∀ ρ ∈ rs, ∀ m : smp.Man, ρ.ContainsMan m → m ∈ S) :
+    M.matching.partnerOfMan '' S = N.matching.partnerOfMan '' S := by
+  apply Matching.image_partnerOfMan_eq_of_eqOn_compl S
+  intro m hm
+  change m ∉ S at hm
+  revert hS
+  induction h with
+  | nil _ =>
+      intro _
+      rfl
+  | cons τ _ ih =>
+      intro hS
+      have hStep : τ.M.matching.partnerOfMan m = τ.eliminate.matching.partnerOfMan m := by
+        by_contra hChanged
+        exact hm (hS τ.toRotation List.mem_cons_self m
+          ((τ.toSMEdge.toRotation_containsMan_iff m).mpr hChanged))
+      exact hStep.trans (ih (fun ρ hMem => hS ρ (List.mem_cons_of_mem _ hMem)))
+
+/-- 男性集合の内部だけで回転除去を取り消すと、その集合の相手全体は保存される。 -/
+theorem IsUndoSequence.image_partnerOfMan_eq {smp : SMP n}
+    {M N : StableMatching smp} {rs : List (Rotation smp)}
+    (h : IsUndoSequence M rs N) (S : Set smp.Man)
+    (hS : ∀ ρ ∈ rs, ∀ m : smp.Man, ρ.ContainsMan m → m ∈ S) :
+    M.matching.partnerOfMan '' S = N.matching.partnerOfMan '' S := by
+  revert hS
+  induction h with
+  | nil _ =>
+      intro _
+      rfl
+  | cons τ _ ih =>
+      intro hS
+      have hOne : IsEliminationSequence τ.M [τ.toRotation] τ.eliminate :=
+        IsEliminationSequence.cons τ (IsEliminationSequence.nil τ.eliminate)
+      have hStep := hOne.image_partnerOfMan_eq S (by
+        intro ρ hρ
+        rw [List.mem_singleton] at hρ
+        subst ρ
+        exact hS τ.toRotation List.mem_cons_self)
+      exact hStep.symm.trans (ih (fun ρ hMem => hS ρ (List.mem_cons_of_mem _ hMem)))
+
 /-- 二つの下方閉集合の差を列挙する回転の線形拡張が存在する。 -/
 theorem exists_linearExtension {smp : SMP n}
     (D D' : LowerSet (Rotation smp)) :

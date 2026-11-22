@@ -89,6 +89,15 @@ theorem partnerOfMan_partnerOfWoman
     M.partnerOfMan (M.partnerOfWoman w) = w := by
   simp [partnerOfWoman, partnerOfMan]
 
+/-- 補集合上で相手が一致する完全マッチングは、指定した男性集合の相手集合も一致する。 -/
+theorem image_partnerOfMan_eq_of_eqOn_compl {smp : SMP n}
+    {M N : Matching smp} (S : Set smp.Man)
+    (h : Set.EqOn M.partnerOfMan N.partnerOfMan Sᶜ) :
+    M.partnerOfMan '' S = N.partnerOfMan '' S := by
+  have hCompl : M.equiv '' Sᶜ = N.equiv '' Sᶜ := Set.image_congr h
+  simp only [Equiv.image_compl] at hCompl
+  exact compl_injective hCompl
+
 /-- partnerOfManの単射性 -/
 theorem partnerOfMan_injective
     {smp : SMP n}
