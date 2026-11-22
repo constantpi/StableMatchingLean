@@ -155,6 +155,17 @@ noncomputable def toSupIrred : Rotation smp → {j : StableMatching smp // SupIr
     (fun e : SMEdge smp => ⟨e.supIrred, e.supIrred_spec.1⟩)
     (fun _ _ h => Subtype.ext (SMEdge.supIrred_eq_of_equivalent h))
 
+/-- 回転の変更前ペアの境界元は、その回転に対応する `SupIrred` 元である。 -/
+theorem toSupIrred_val_eq_partnerThreshold {smp : SMP n}
+    {ρ : Rotation smp} {m : smp.Man} {w : smp.Woman}
+    (h : ρ.IsChangedPair m w) :
+    (toSupIrred ρ).1 = Lattice.partnerThreshold m w := by
+  revert h
+  refine Quotient.inductionOn ρ ?_
+  intro e hChanged
+  change e.supIrred = Lattice.partnerThreshold m w
+  exact e.supIrred_eq_partnerThreshold ((e.toRotation_isChangedPair_iff m w).mp hChanged)
+
 /-- 回転から `SupIrred` 元への写像は単射である。 -/
 theorem toSupIrred_injective {smp : SMP n} :
     Function.Injective (toSupIrred (smp := smp)) := by
