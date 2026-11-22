@@ -12,6 +12,11 @@ noncomputable def stableMatchingOrderIsoLowerSet {smp : SMP n} :
   exact (OrderIso.lowerSetSupIrred (α := StableMatching smp)).trans
     (LowerSet.map (orderIsoSupIrred (smp := smp)).symm)
 
+/-- 回転の下方閉集合全体を有限和や濃度の計算で扱うためのインスタンス。 -/
+noncomputable instance lowerSetFintype {smp : SMP n} :
+    Fintype (LowerSet (Rotation smp)) :=
+  Fintype.ofFinite _
+
 end Rotation
 
 namespace StableMatching
