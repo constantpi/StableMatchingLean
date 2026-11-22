@@ -209,6 +209,70 @@ theorem exists_linearExtension {smp : SMP n}
     have hba' : (show Remaining from b) ≤ (show Remaining from a) := hba
     exact (not_le_of_gt hab) ((toLinearExtension (α := Remaining)).monotone hba')
 
+/-- 回転 `ρ` がリスト `rs` の中で `σ` より前に現れること。 -/
+def PrecedesIn {smp : SMP n} (ρ σ : Rotation smp)
+    (rs : List (Rotation smp)) : Prop :=
+  List.Sublist [ρ, σ] rs
+
+/-- 回転の狭義順序は、合法な除去列における先行関係と一致する。 -/
+theorem lt_iff_forall_eliminationSequence_precedes {smp : SMP n}
+    (ρ σ : Rotation smp) :
+    ρ < σ ↔
+      ∀ {M N : StableMatching smp} {rs : List (Rotation smp)},
+        IsEliminationSequence M rs N →
+        ρ ∈ rs → σ ∈ rs → PrecedesIn ρ σ rs := by
+  constructor
+  · intro hLt M N rs hRun hρ hσ
+    have precedes (xs : List (Rotation smp)) :
+        ρ ∈ xs → σ ∈ xs → xs.Pairwise (fun a b => ¬ b ≤ a) →
+          List.Sublist [ρ, σ] xs := by
+      induction xs with
+      | nil =>
+          intro hρMem
+          exact (List.not_mem_nil hρMem).elim
+      | cons a xs ih =>
+          intro hρMem hσMem hOrder
+          obtain ⟨hHeadOrder, hTailOrder⟩ := List.pairwise_cons.mp hOrder
+          rcases List.mem_cons.mp hρMem with hρHead | hρTail
+          · subst a
+            have hσTail := (List.mem_cons.mp hσMem).resolve_left hLt.ne.symm
+            exact (List.singleton_sublist.mpr hσTail).cons_cons ρ
+          · rcases List.mem_cons.mp hσMem with hσHead | hσTail
+            · subst a
+              exact (hHeadOrder ρ hρTail hLt.le).elim
+            · exact (ih hρTail hσTail hTailOrder).cons a
+    exact precedes rs hρ hσ hRun.linearExtension.2.2
+  · intro hPrecedes
+    by_contra hNotLt
+    have hInsert : (LowerSet.Iic σ : Set (Rotation smp)) =
+        insert σ (LowerSet.Iio σ : Set (Rotation smp)) := by
+      apply Set.ext
+      intro a
+      rw [Set.mem_insert_iff]
+      change a ≤ σ ↔ a = σ ∨ a < σ
+      exact le_iff_eq_or_lt
+    obtain ⟨τ, hM, hEliminate, hLabel⟩ :=
+      ExposedRotation.exists_of_lowerSet_insert (LowerSet.Iio σ) (LowerSet.Iic σ) σ
+        (lt_irrefl σ) hInsert
+    obtain ⟨rs, hMem, hOrder⟩ := exists_linearExtension (LowerSet.Iic σ) ⊤
+    have hTail := isEliminationSequence_of_linearExtension (LowerSet.Iic σ) ⊤ rs le_top hMem hOrder
+    rw [← hEliminate] at hTail
+    have hRun : IsEliminationSequence τ.M (σ :: rs)
+        (StableMatching.ofRotationLowerSet (⊤ : LowerSet (Rotation smp))) := by
+      rw [← hLabel]
+      exact IsEliminationSequence.cons τ hTail
+    have hρMem : ρ ∈ σ :: rs := by
+      apply (hRun.linearExtension.2.1 ρ).mpr
+      refine ⟨?_, ?_⟩
+      · simpa only [StableMatching.toRotationLowerSet_ofRotationLowerSet] using
+          (LowerSet.mem_top : ρ ∈ (⊤ : LowerSet (Rotation smp)))
+      · simpa only [hM, StableMatching.toRotationLowerSet_ofRotationLowerSet] using hNotLt
+    have hBefore : List.Sublist [ρ, σ] (σ :: rs) :=
+      hPrecedes hRun hρMem List.mem_cons_self
+    have hSingleton : List.Sublist [σ] rs := hBefore.tail
+    have hσTail := List.singleton_sublist.mp hSingleton
+    exact ((hMem σ).mp hσTail).2 (LowerSet.mem_Iic_iff.mpr le_rfl)
+
 end Rotation
 end SMP
 end StableMatching
