@@ -163,6 +163,45 @@ theorem toSupIrred_injective {smp : SMP n} :
       exact (m.prefers_iff_prefersOrEqual_and_ne _ _).mpr ⟨hstle, hstneq.symm⟩
     exact SMEdge.isChangedPair_of_supIrred_eq_partnerThreshold e₁ hstable hWorse this
 
+/-- 回転から `SupIrred` 元への写像は全射である。 -/
+theorem toSupIrred_surjective {smp : SMP n} :
+    Function.Surjective (toSupIrred (smp := smp)) := by
+  intro j'
+  set j := j'.val
+  have hSupIrred : SupIrred j := j'.property
+  have h_not_bot := hSupIrred.1
+  -- jより小さい要素を集めて、その中で極大元を取ると、jに対応する被覆辺が得られる。
+  let S := {P : StableMatching smp | P < j}
+  have hS_nonempty : S.Nonempty := by
+    change ∃ P : StableMatching smp, P < j
+    exact not_isMin_iff.mp h_not_bot
+  -- 非空であり、有限集合であるため、極大元が存在する。
+  have hS_finite : S.Finite := S.toFinite
+  obtain ⟨M, hM_in_S, hM_max⟩ := hS_finite.exists_maximal hS_nonempty
+  simp at hM_max
+  -- Mとjが被覆関係にあることを示す。
+  have hM_lt_j : M ⋖ j := by
+    refine ⟨ hM_in_S, ?_ ⟩
+    intro c hMc hcj
+    have hc_in_S : c ∈ S := hcj
+    have := hM_max hc_in_S hMc.le
+    -- M < c と C ≤ M から矛盾が生じる。
+    exact not_le_of_gt hMc this
+  let e := SMEdge.mk M j hM_lt_j
+  exists e.toRotation
+  apply Subtype.ext
+  change e.supIrred = j
+  have he_uniq := e.existsUnique_supIrred
+  have he_sqec := e.supIrred_spec
+  -- SupIrred jはすでに証明されているので、残りの2つの条件を示す
+  have : SupIrred j ∧ j ≤ e.target ∧ ¬(j ≤ e.source) := by
+    refine ⟨hSupIrred, ?_, ?_⟩
+    . rfl
+    .
+      simp [e]
+      exact not_le_of_gt hM_lt_j.lt
+  exact he_uniq.unique he_sqec this
+
 end Rotation
 end SMP
 end StableMatching
