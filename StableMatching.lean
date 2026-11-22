@@ -8,3 +8,4 @@ import StableMatching.Lattice.Finite
 import StableMatching.Lattice.PartnerThreshold
 import StableMatching.Rotation.DefEquality
 import StableMatching.Rotation.Order
+import StableMatching.Rotation.Birkhoff
