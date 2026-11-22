@@ -208,6 +208,34 @@ theorem IsEliminationSequence.partnerOfMan_ne_of_changed {smp : SMP n}
   · exact h₁.le m
   · simpa only [← hReturn] using h₂.le m
 
+/-- 合法な除去列の始点と終点で男性の相手が異なることと、その男性が参加する回転が列にあることは同値。 -/
+theorem IsEliminationSequence.partnerOfMan_ne_iff_exists_containsMan
+    {smp : SMP n} {M N : StableMatching smp} {rs : List (Rotation smp)}
+    (h : IsEliminationSequence M rs N) (m : smp.Man) :
+    M.matching.partnerOfMan m ≠ N.matching.partnerOfMan m ↔
+      ∃ ρ ∈ rs, ρ.ContainsMan m := by
+  classical
+  induction h with
+  | nil M => simp
+  | cons τ hTail ih =>
+    have hStep : τ.toRotation.ContainsMan m ↔
+        τ.M.matching.partnerOfMan m ≠ τ.eliminate.matching.partnerOfMan m :=
+      τ.toSMEdge.toRotation_containsMan_iff m
+    by_cases hContains : τ.toRotation.ContainsMan m
+    · have hHead := IsEliminationSequence.cons τ (IsEliminationSequence.nil τ.eliminate)
+      exact ⟨fun _ => ⟨τ.toRotation, List.mem_cons_self, hContains⟩,
+        fun _ => hHead.partnerOfMan_ne_of_changed hTail m (hStep.mp hContains)⟩
+    · have hSame : τ.M.matching.partnerOfMan m = τ.eliminate.matching.partnerOfMan m :=
+        not_ne_iff.mp (mt hStep.mpr hContains)
+      rw [hSame, ih]
+      simp only [List.mem_cons]
+      constructor
+      · rintro ⟨ρ, hρ, hMan⟩
+        exact ⟨ρ, Or.inr hρ, hMan⟩
+      · rintro ⟨ρ, rfl | hρ, hMan⟩
+        · exact (hContains hMan).elim
+        · exact ⟨ρ, hρ, hMan⟩
+
 /-- 回転除去の取り消しで相手が変わった男性は、その後の取り消しで元の相手に戻らない。 -/
 theorem IsUndoSequence.partnerOfMan_ne_of_changed {smp : SMP n}
     {M N P : StableMatching smp} {rs ts : List (Rotation smp)}
