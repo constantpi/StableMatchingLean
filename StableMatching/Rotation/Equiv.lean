@@ -117,6 +117,38 @@ theorem SMEdge.toRotation_eq_iff
     e₁.toRotation = e₂.toRotation ↔ e₁.Equivalent e₂ := by
   apply Quotient.eq
 
+/-- ペア `(m, w)` が回転の変更前ペアであること。 -/
+def IsChangedPair {smp : SMP n}
+    (ρ : Rotation smp) (m : smp.Man) (w : smp.Woman) : Prop :=
+  Quotient.liftOn ρ
+    (fun e : SMEdge smp => e.IsChangedPair m w)
+    (fun _ _ h => propext (h m w))
+
+/-- 男性 `m` が回転 `ρ` に参加すること。 -/
+def ContainsMan {smp : SMP n} (ρ : Rotation smp) (m : smp.Man) : Prop :=
+  ∃ w : smp.Woman, ρ.IsChangedPair m w
+
+/-- 代表辺とその回転は同じ変更前ペアを持つ。 -/
+@[simp]
+theorem SMEdge.toRotation_isChangedPair_iff {smp : SMP n}
+    (e : SMEdge smp) (m : smp.Man) (w : smp.Woman) :
+    e.toRotation.IsChangedPair m w ↔ e.IsChangedPair m w :=
+  Iff.rfl
+
+/-- 代表辺の両端で相手が変わる男性は、その回転に参加する。 -/
+@[simp]
+theorem SMEdge.toRotation_containsMan_iff {smp : SMP n}
+    (e : SMEdge smp) (m : smp.Man) :
+    e.toRotation.ContainsMan m ↔
+      e.source.matching.partnerOfMan m ≠ e.target.matching.partnerOfMan m := by
+  change (∃ w : smp.Woman, e.IsChangedPair m w) ↔ _
+  constructor
+  · rintro ⟨w, hSource, hTarget⟩
+    rw [hSource]
+    exact hTarget.symm
+  · intro hChanged
+    exact ⟨e.source.matching.partnerOfMan m, rfl, hChanged.symm⟩
+
 /-- 回転を、代表する被覆辺に対応する `SupIrred` 元に写す。 -/
 noncomputable def toSupIrred : Rotation smp → {j : StableMatching smp // SupIrred j} :=
   Quotient.lift
