@@ -15,6 +15,39 @@ inductive IsEliminationSequence {smp : SMP n} :
       (hTail : IsEliminationSequence τ.eliminate rs N) :
       IsEliminationSequence τ.M (τ.toRotation :: rs) N
 
+/-- `rs` が `M` から `N` への合法な回転除去の取り消し列であること。 -/
+inductive IsUndoSequence {smp : SMP n} :
+    StableMatching smp → List (Rotation smp) → StableMatching smp → Prop where
+  | nil (M : StableMatching smp) :
+      IsUndoSequence M [] M
+  | cons {rs : List (Rotation smp)} {N : StableMatching smp}
+      (τ : ExposedRotation smp)
+      (hTail : IsUndoSequence τ.M rs N) :
+      IsUndoSequence τ.eliminate (τ.toRotation :: rs) N
+
+/-- 合法な回転除去列を逆順に取り消すと、元の安定マッチングに戻る。 -/
+theorem IsEliminationSequence.reverse_isUndoSequence {smp : SMP n}
+    {M N : StableMatching smp} {rs : List (Rotation smp)}
+    (h : IsEliminationSequence M rs N) :
+    IsUndoSequence N rs.reverse M := by
+  have appendUndo {A B C : StableMatching smp} {xs ys : List (Rotation smp)}
+      (hPrefix : IsUndoSequence A xs B) (hSuffix : IsUndoSequence B ys C) :
+      IsUndoSequence A (xs ++ ys) C := by
+    revert hSuffix
+    induction hPrefix with
+    | nil _ =>
+        intro hSuffix
+        exact hSuffix
+    | cons τ _ ih =>
+        intro hSuffix
+        exact IsUndoSequence.cons τ (ih hSuffix)
+  induction h with
+  | nil M =>
+      exact IsUndoSequence.nil M
+  | cons τ _ ih =>
+      rw [List.reverse_cons]
+      exact appendUndo ih (IsUndoSequence.cons τ (IsUndoSequence.nil τ.M))
+
 /-- 下方閉集合への回転の1要素追加は、対応する露出回転の除去として実現できる。 -/
 theorem ExposedRotation.exists_of_lowerSet_insert {smp : SMP n}
     (D D' : LowerSet (Rotation smp)) (ρ : Rotation smp)
