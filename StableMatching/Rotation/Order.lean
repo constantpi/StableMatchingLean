@@ -38,6 +38,23 @@ theorem le_total_of_containsMan {smp : SMP n}
       (m.prefers_iff_not_prefersOrEqual w₂ w₁).mpr hPref
     exact Or.inr (threshold_le_of_prefersOrEqual (le_of_lt hReverse))
 
+/-- 男性 `m` が参加する回転の集合。 -/
+def manChain {smp : SMP n} (m : smp.Man) : Set (Rotation smp) :=
+  {ρ | ρ.ContainsMan m}
+
+/-- 回転が `m`-chain に属することと、男性 `m` がその回転に参加することは同値。 -/
+@[simp]
+theorem mem_manChain_iff {smp : SMP n} {ρ : Rotation smp} (m : smp.Man) :
+    ρ ∈ manChain m ↔ ρ.ContainsMan m :=
+  Iff.rfl
+
+/-- 男性 `m` が参加する回転の集合は、回転の半順序における鎖である。 -/
+theorem isChain_manChain {smp : SMP n} (m : smp.Man) :
+    IsChain (· ≤ ·) (manChain m) := by
+  intro ρ₁ h₁ ρ₂ h₂ _
+  simp
+  exact le_total_of_containsMan m h₁ h₂
+
 end Rotation
 end SMP
 end StableMatching
