@@ -1,3 +1,4 @@
+import Mathlib.GroupTheory.Perm.Cycle.Basic
 import StableMatching.Rotation.Exposed
 
 namespace StableMatching
@@ -541,6 +542,37 @@ theorem cycleNext_closed
       rw [Function.iterate_succ_apply' (cycleNext ρ.hk) t i]
       exact hstep ((cycleNext ρ.hk)^[t] i) ih
   exact this t
+
+/-- 回転の除去による相手の置換は、参加する男性全体の上で単一のサイクルをなす。 -/
+theorem eliminate_partnerPermutation_isCycleOn
+    (ρ : ExposedRotation smp) :
+    Equiv.Perm.IsCycleOn
+      (ρ.eliminate.matching.equiv.trans ρ.M.matching.equiv.symm)
+      {m | ρ.ContainsMan m} := by
+  let p : Equiv.Perm smp.Man :=
+    ρ.eliminate.matching.equiv.trans ρ.M.matching.equiv.symm
+  change p.IsCycleOn _
+  have hNext (i : Fin ρ.k) : p (ρ.man i) = ρ.man (cycleNext ρ.hk i) := by
+    apply ρ.M.matching.partnerOfMan_injective
+    calc
+      ρ.M.matching.partnerOfMan (p (ρ.man i)) =
+          ρ.eliminate.matching.partnerOfMan (ρ.man i) :=
+        ρ.M.matching.equiv.apply_symm_apply _
+      _ = ρ.woman (cycleNext ρ.hk i) := ρ.eliminate_partnerOfMan_man i
+      _ = ρ.M.matching.partnerOfMan (ρ.man (cycleNext ρ.hk i)) :=
+        (ρ.matched _).symm
+  refine ⟨⟨?_, p.injective.injOn, ?_⟩, ?_⟩
+  · rintro _ ⟨i, rfl⟩
+    exact ⟨cycleNext ρ.hk i, (hNext i).symm⟩
+  · rintro _ ⟨j, rfl⟩
+    refine ⟨ρ.man (cyclePrev ρ.hk j), ⟨_, rfl⟩, ?_⟩
+    rw [hNext, ρ.cycleNext_cyclePrev]
+  · rintro _ ⟨i, rfl⟩ _ ⟨j, rfl⟩
+    obtain ⟨t, ht⟩ := ρ.cycleNext_reachable i j
+    have hSemiconj : Function.Semiconj ρ.man (cycleNext ρ.hk) p :=
+      fun i => (hNext i).symm
+    refine ⟨(t : ℤ), ?_⟩
+    rw [zpow_natCast, Equiv.Perm.coe_pow, ← hSemiconj.iterate_right t i, ht]
 
 /-- 回転の除去前後の間に別の安定マッチングは存在しない。 -/
 theorem covBy_eliminate
