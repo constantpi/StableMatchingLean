@@ -323,6 +323,16 @@ theorem exists_linearExtension {smp : SMP n}
     have hba' : (show Remaining from b) ≤ (show Remaining from a) := hba
     exact (not_le_of_gt hab) ((toLinearExtension (α := Remaining)).monotone hba')
 
+/-- 比較可能な二つの下方閉集合で男性の相手が異なるのは、その差に本人が参加する回転があるときに限る。 -/
+theorem partnerOfMan_ne_iff_exists_mem_diff {smp : SMP n}
+    {D E : LowerSet (Rotation smp)} (hle : D ≤ E) (m : smp.Man) :
+    (StableMatching.ofRotationLowerSet D).matching.partnerOfMan m ≠
+      (StableMatching.ofRotationLowerSet E).matching.partnerOfMan m ↔
+      ∃ ρ : Rotation smp, (ρ ∈ E ∧ ρ ∉ D) ∧ ρ.ContainsMan m := by
+  obtain ⟨rs, hMem, hOrder⟩ := exists_linearExtension D E
+  have hRun := isEliminationSequence_of_linearExtension D E rs hle hMem hOrder
+  simpa only [hMem] using hRun.partnerOfMan_ne_iff_exists_containsMan m
+
 /-- 回転 `ρ` がリスト `rs` の中で `σ` より前に現れること。 -/
 def PrecedesIn {smp : SMP n} (ρ σ : Rotation smp)
     (rs : List (Rotation smp)) : Prop :=
