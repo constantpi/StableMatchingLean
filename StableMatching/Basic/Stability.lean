@@ -58,6 +58,11 @@ theorem StableMatching.ext_partnerOfMan
   have hM : M₁ = M₂ := Matching.ext_partnerOfMan h
   simp [hM]
 
+/-- 二つの安定マッチングで相手が異なる男性全体。 -/
+def StableMatching.changedMen {smp : SMP n}
+    (M N : smp.StableMatching) : Set smp.Man :=
+  {m | M.matching.partnerOfMan m ≠ N.matching.partnerOfMan m}
+
 /-- 安定マッチングを男女交換後の問題へ移す。-/
 def StableMatching.swap
     {smp : SMP n}
