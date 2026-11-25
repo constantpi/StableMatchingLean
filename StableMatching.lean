@@ -4,6 +4,7 @@
 
 import StableMatching.Algorithm.GaleShapley
 import StableMatching.Basic.LabeledRanks
+import StableMatching.Basic.Submarket
 import StableMatching.Examples.Basic
 import StableMatching.Lattice.Finite
 import StableMatching.Lattice.PartnerThreshold
