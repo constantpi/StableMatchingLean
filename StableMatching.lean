@@ -3,6 +3,7 @@
 -- import StableMatching.Basic
 
 import StableMatching.Algorithm.GaleShapley
+import StableMatching.Basic.LabeledRanks
 import StableMatching.Examples.Basic
 import StableMatching.Lattice.Finite
 import StableMatching.Lattice.PartnerThreshold
