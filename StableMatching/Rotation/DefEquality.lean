@@ -142,6 +142,29 @@ noncomputable def equivRotation :
     ⟩
 
 end ExposedRotationQuotient
+
+/-- 任意の回転には少なくとも二人の男性が参加する。 -/
+theorem two_le_ncard_containsMan {smp : SMP n} (ρ : Rotation smp) :
+    2 ≤ ({m : smp.Man | ρ.ContainsMan m} : Set smp.Man).ncard := by
+  obtain ⟨q, hq⟩ := ExposedRotationQuotient.toRotation_surjective ρ
+  revert hq
+  refine Quotient.inductionOn q ?_
+  intro τ hτ
+  have hMem (i : Fin τ.k) : ρ.ContainsMan (τ.man i) := by
+    rw [← hτ]
+    exact ⟨τ.woman i, (τ.toSMEdge_isChangedPair_iff _ _).mpr ⟨i, rfl, rfl⟩⟩
+  let i : Fin τ.k := ⟨0, by have := τ.hk; omega⟩
+  let j : Fin τ.k := ⟨1, τ.hk⟩
+  have hij : τ.man i ≠ τ.man j := fun h =>
+    Nat.zero_ne_one (congrArg Fin.val (τ.man_injective h))
+  have hPair : {τ.man i, τ.man j} ⊆ {m : smp.Man | ρ.ContainsMan m} := by
+    intro m hm
+    rcases Set.mem_insert_iff.mp hm with rfl | hm
+    · exact hMem i
+    · rw [Set.mem_singleton_iff.mp hm]
+      exact hMem j
+  simpa only [Set.ncard_pair hij] using Set.ncard_le_ncard hPair
+
 end Rotation
 end SMP
 end StableMatching
