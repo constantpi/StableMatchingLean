@@ -3,6 +3,7 @@
 -- import StableMatching.Basic
 
 import StableMatching.Algorithm.GaleShapley
+import StableMatching.Basic.DisjointMarket
 import StableMatching.Basic.LabeledRanks
 import StableMatching.Basic.Submarket
 import StableMatching.Examples.Basic
